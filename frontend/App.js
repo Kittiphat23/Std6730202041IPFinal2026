@@ -13,227 +13,227 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { API_BASE_URL_THONGPHUM } from './config';
+import { API_BASE_URL } from './config';
 
 export default function App() {
   // Navigation & Auth States
-  const [isLoggedInTHONGPHUM, setIsLoggedInTHONGPHUM] = useState(false);
-  const [authTokenTHONGPHUM, setAuthTokenTHONGPHUM] = useState('');
-  const [usernameInputTHONGPHUM, setUsernameInputTHONGPHUM] = useState('admin');
-  const [passwordInputTHONGPHUM, setPasswordInputTHONGPHUM] = useState('password123');
-  const [loginLoadingTHONGPHUM, setLoginLoadingTHONGPHUM] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authToken, setAuthToken] = useState('');
+  const [usernameInput, setUsernameInput] = useState('admin');
+  const [passwordInput, setPasswordInput] = useState('password123');
+  const [loginLoading, setLoginLoading] = useState(false);
 
   // Employee CRUD States
-  const [employeesTHONGPHUM, setEmployeesTHONGPHUM] = useState([]);
-  const [loadingEmployeesTHONGPHUM, setLoadingEmployeesTHONGPHUM] = useState(false);
-  const [nameInputTHONGPHUM, setNameInputTHONGPHUM] = useState('');
-  const [positionInputTHONGPHUM, setPositionInputTHONGPHUM] = useState('');
-  const [salaryInputTHONGPHUM, setSalaryInputTHONGPHUM] = useState('');
-  const [formErrorTHONGPHUM, setFormErrorTHONGPHUM] = useState('');
-  const [addingEmployeeTHONGPHUM, setAddingEmployeeTHONGPHUM] = useState(false);
+  const [employees, setEmployees] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const [positionInput, setPositionInput] = useState('');
+  const [salaryInput, setSalaryInput] = useState('');
+  const [formError, setFormError] = useState('');
+  const [addingEmployee, setAddingEmployee] = useState(false);
 
   // Salary Analytics (K-Means) States
-  const [clusteringLoadingTHONGPHUM, setClusteringLoadingTHONGPHUM] = useState(false);
-  const [clustersDataTHONGPHUM, setClustersDataTHONGPHUM] = useState(null);
+  const [clusteringLoading, setClusteringLoading] = useState(false);
+  const [clustersData, setClustersData] = useState(null);
 
   // Custom Alert helper for cross-platform (Native + Web)
-  const showNotificationTHONGPHUM = (titleTHONGPHUM, messageTHONGPHUM) => {
+  const showNotification = (title, message) => {
     if (Platform.OS === 'web') {
-      window.alert(`${titleTHONGPHUM}: ${messageTHONGPHUM}`);
+      window.alert(`${title}: ${message}`);
     } else {
-      Alert.alert(titleTHONGPHUM, messageTHONGPHUM);
+      Alert.alert(title, message);
     }
   };
 
   // ---------------------------------------------------------
   // Authentication: Login Handler
   // ---------------------------------------------------------
-  const handleLoginTHONGPHUM = async () => {
-    if (!usernameInputTHONGPHUM.trim() || !passwordInputTHONGPHUM.trim()) {
-      showNotificationTHONGPHUM('Login Failed', 'Please enter both username and password.');
+  const handleLogin = async () => {
+    if (!usernameInput.trim() || !passwordInput.trim()) {
+      showNotification('Login Failed', 'Please enter both username and password.');
       return;
     }
 
     try {
-      setLoginLoadingTHONGPHUM(true);
-      const responseTHONGPHUM = await fetch(`${API_BASE_URL_THONGPHUM}/api/login`, {
+      setLoginLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: usernameInputTHONGPHUM.trim(),
-          password: passwordInputTHONGPHUM.trim(),
+          username: usernameInput.trim(),
+          password: passwordInput.trim(),
         }),
       });
 
-      const dataTHONGPHUM = await responseTHONGPHUM.json();
+      const data = await response.json();
 
-      if (responseTHONGPHUM.status === 200 && dataTHONGPHUM.success) {
-        setAuthTokenTHONGPHUM(dataTHONGPHUM.token);
-        setIsLoggedInTHONGPHUM(true);
-        fetchEmployeesTHONGPHUM();
+      if (response.status === 200 && data.success) {
+        setAuthToken(data.token);
+        setIsLoggedIn(true);
+        fetchEmployees();
       } else {
-        showNotificationTHONGPHUM('Login Failed', dataTHONGPHUM.message || 'Invalid username or password');
+        showNotification('Login Failed', data.message || 'Invalid username or password');
       }
-    } catch (errorTHONGPHUM) {
-      showNotificationTHONGPHUM('Network Error', `Cannot connect to server at ${API_BASE_URL_THONGPHUM}`);
+    } catch (error) {
+      showNotification('Network Error', `Cannot connect to server at ${API_BASE_URL}`);
     } finally {
-      setLoginLoadingTHONGPHUM(false);
+      setLoginLoading(false);
     }
   };
 
   // ---------------------------------------------------------
   // Authentication: Logout Handler
   // ---------------------------------------------------------
-  const handleLogoutTHONGPHUM = () => {
-    setIsLoggedInTHONGPHUM(false);
-    setAuthTokenTHONGPHUM('');
-    setEmployeesTHONGPHUM([]);
-    setClustersDataTHONGPHUM(null);
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setAuthToken('');
+    setEmployees([]);
+    setClustersData(null);
   };
 
   // ---------------------------------------------------------
   // CRUD: Fetch Employees
   // ---------------------------------------------------------
-  const fetchEmployeesTHONGPHUM = async () => {
+  const fetchEmployees = async () => {
     try {
-      setLoadingEmployeesTHONGPHUM(true);
-      const responseTHONGPHUM = await fetch(`${API_BASE_URL_THONGPHUM}/api/employees`);
-      const dataTHONGPHUM = await responseTHONGPHUM.json();
-      if (responseTHONGPHUM.status === 200 && Array.isArray(dataTHONGPHUM)) {
-        setEmployeesTHONGPHUM(dataTHONGPHUM);
+      setLoadingEmployees(true);
+      const response = await fetch(`${API_BASE_URL}/api/employees`);
+      const data = await response.json();
+      if (response.status === 200 && Array.isArray(data)) {
+        setEmployees(data);
       }
-    } catch (errorTHONGPHUM) {
-      console.error('Fetch Employees Error:', errorTHONGPHUM);
+    } catch (error) {
+      console.error('Fetch Employees Error:', error);
     } finally {
-      setLoadingEmployeesTHONGPHUM(false);
+      setLoadingEmployees(false);
     }
   };
 
   // ---------------------------------------------------------
   // CRUD: Add New Employee with Client-Side Validation
   // ---------------------------------------------------------
-  const handleAddEmployeeTHONGPHUM = async () => {
-    setFormErrorTHONGPHUM('');
+  const handleAddEmployee = async () => {
+    setFormError('');
 
     // Client-side validation: prevent submission if fields are empty
-    if (!nameInputTHONGPHUM.trim() || !positionInputTHONGPHUM.trim() || !salaryInputTHONGPHUM.trim()) {
-      setFormErrorTHONGPHUM('All fields (Name, Position, Salary) are required.');
+    if (!nameInput.trim() || !positionInput.trim() || !salaryInput.trim()) {
+      setFormError('All fields (Name, Position, Salary) are required.');
       return;
     }
 
-    const numericSalaryTHONGPHUM = Number(salaryInputTHONGPHUM);
-    if (Number.isNaN(numericSalaryTHONGPHUM) || numericSalaryTHONGPHUM <= 0) {
-      setFormErrorTHONGPHUM('Salary must be a valid positive number.');
+    const numericSalary = Number(salaryInput);
+    if (Number.isNaN(numericSalary) || numericSalary <= 0) {
+      setFormError('Salary must be a valid positive number.');
       return;
     }
 
     try {
-      setAddingEmployeeTHONGPHUM(true);
-      const responseTHONGPHUM = await fetch(`${API_BASE_URL_THONGPHUM}/api/employees`, {
+      setAddingEmployee(true);
+      const response = await fetch(`${API_BASE_URL}/api/employees`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: nameInputTHONGPHUM.trim(),
-          position: positionInputTHONGPHUM.trim(),
-          salary: numericSalaryTHONGPHUM,
+          name: nameInput.trim(),
+          position: positionInput.trim(),
+          salary: numericSalary,
         }),
       });
 
-      const dataTHONGPHUM = await responseTHONGPHUM.json();
+      const data = await response.json();
 
-      if (responseTHONGPHUM.status === 201) {
-        setNameInputTHONGPHUM('');
-        setPositionInputTHONGPHUM('');
-        setSalaryInputTHONGPHUM('');
-        setFormErrorTHONGPHUM('');
+      if (response.status === 201) {
+        setNameInput('');
+        setPositionInput('');
+        setSalaryInput('');
+        setFormError('');
         // Refresh employees list
-        fetchEmployeesTHONGPHUM();
+        fetchEmployees();
         // If clusters are already shown, re-analyze to update calculations
-        if (clustersDataTHONGPHUM) {
-          handleAnalyzeSalaryTHONGPHUM();
+        if (clustersData) {
+          handleAnalyzeSalary();
         }
       } else {
-        setFormErrorTHONGPHUM(dataTHONGPHUM.message || 'Failed to add employee');
+        setFormError(data.message || 'Failed to add employee');
       }
-    } catch (errorTHONGPHUM) {
-      setFormErrorTHONGPHUM('Network error while adding employee');
+    } catch (error) {
+      setFormError('Network error while adding employee');
     } finally {
-      setAddingEmployeeTHONGPHUM(false);
+      setAddingEmployee(false);
     }
   };
 
   // ---------------------------------------------------------
   // CRUD: Toggle Employee Status
   // ---------------------------------------------------------
-  const handleToggleStatusTHONGPHUM = async (employeeIdTHONGPHUM) => {
+  const handleToggleStatus = async (employeeId) => {
     try {
-      const responseTHONGPHUM = await fetch(`${API_BASE_URL_THONGPHUM}/api/employees/${employeeIdTHONGPHUM}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/employees/${employeeId}/status`, {
         method: 'PUT',
       });
-      const dataTHONGPHUM = await responseTHONGPHUM.json();
-      if (responseTHONGPHUM.status === 200 && dataTHONGPHUM.success) {
+      const data = await response.json();
+      if (response.status === 200 && data.success) {
         // Update local list immediately
-        setEmployeesTHONGPHUM((prevListTHONGPHUM) =>
-          prevListTHONGPHUM.map((empTHONGPHUM) =>
-            String(empTHONGPHUM.id) === String(employeeIdTHONGPHUM) ? dataTHONGPHUM.employee : empTHONGPHUM
+        setEmployees((prevList) =>
+          prevList.map((emp) =>
+            String(emp.id) === String(employeeId) ? data.employee : emp
           )
         );
       } else {
-        showNotificationTHONGPHUM('Error', dataTHONGPHUM.message || 'Could not toggle status');
+        showNotification('Error', data.message || 'Could not toggle status');
       }
-    } catch (errorTHONGPHUM) {
-      showNotificationTHONGPHUM('Error', 'Network error while updating status');
+    } catch (error) {
+      showNotification('Error', 'Network error while updating status');
     }
   };
 
   // ---------------------------------------------------------
   // CRUD: Delete Employee with Confirmation Alert Dialog
   // ---------------------------------------------------------
-  const executeDeleteEmployeeTHONGPHUM = async (employeeIdTHONGPHUM) => {
+  const executeDeleteEmployee = async (employeeId) => {
     try {
-      const responseTHONGPHUM = await fetch(`${API_BASE_URL_THONGPHUM}/api/employees/${employeeIdTHONGPHUM}`, {
+      const response = await fetch(`${API_BASE_URL}/api/employees/${employeeId}`, {
         method: 'DELETE',
       });
-      const dataTHONGPHUM = await responseTHONGPHUM.json();
-      if (responseTHONGPHUM.status === 200 && dataTHONGPHUM.success) {
+      const data = await response.json();
+      if (response.status === 200 && data.success) {
         // Remove from list
-        setEmployeesTHONGPHUM((prevListTHONGPHUM) =>
-          prevListTHONGPHUM.filter((empTHONGPHUM) => String(empTHONGPHUM.id) !== String(employeeIdTHONGPHUM))
+        setEmployees((prevList) =>
+          prevList.filter((emp) => String(emp.id) !== String(employeeId))
         );
         // Refresh clustering if active
-        if (clustersDataTHONGPHUM) {
-          handleAnalyzeSalaryTHONGPHUM();
+        if (clustersData) {
+          handleAnalyzeSalary();
         }
       } else {
-        showNotificationTHONGPHUM('Error', dataTHONGPHUM.message || 'Failed to delete employee');
+        showNotification('Error', data.message || 'Failed to delete employee');
       }
-    } catch (errorTHONGPHUM) {
-      showNotificationTHONGPHUM('Error', 'Network error while deleting employee');
+    } catch (error) {
+      showNotification('Error', 'Network error while deleting employee');
     }
   };
 
-  const confirmDeleteEmployeeTHONGPHUM = (employeeTHONGPHUM) => {
-    const messagePromptTHONGPHUM = `Are you sure you want to remove ${employeeTHONGPHUM.name}?`;
+  const confirmDeleteEmployee = (employee) => {
+    const messagePrompt = `Are you sure you want to remove ${employee.name}?`;
 
     if (Platform.OS === 'web') {
-      const isConfirmedTHONGPHUM = window.confirm(`Are you sure?\n${messagePromptTHONGPHUM}`);
-      if (isConfirmedTHONGPHUM) {
-        executeDeleteEmployeeTHONGPHUM(employeeTHONGPHUM.id);
+      const isConfirmed = window.confirm(`Are you sure?\n${messagePrompt}`);
+      if (isConfirmed) {
+        executeDeleteEmployee(employee.id);
       }
     } else {
       Alert.alert(
         'Are you sure?',
-        messagePromptTHONGPHUM,
+        messagePrompt,
         [
           { text: 'Cancel', style: 'cancel' },
           {
             text: 'Delete',
             style: 'destructive',
-            onPress: () => executeDeleteEmployeeTHONGPHUM(employeeTHONGPHUM.id),
+            onPress: () => executeDeleteEmployee(employee.id),
           },
         ],
         { cancelable: true }
@@ -244,79 +244,79 @@ export default function App() {
   // ---------------------------------------------------------
   // Phase 2: Analyze Salary Structure (K-Means Clustering)
   // ---------------------------------------------------------
-  const handleAnalyzeSalaryTHONGPHUM = async () => {
+  const handleAnalyzeSalary = async () => {
     try {
-      setClusteringLoadingTHONGPHUM(true);
-      const responseTHONGPHUM = await fetch(`${API_BASE_URL_THONGPHUM}/api/employees/salary-clusters`);
-      const dataTHONGPHUM = await responseTHONGPHUM.json();
+      setClusteringLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/employees/salary-clusters`);
+      const data = await response.json();
 
-      if (responseTHONGPHUM.status === 200 && dataTHONGPHUM.success) {
-        setClustersDataTHONGPHUM(dataTHONGPHUM.clusters);
+      if (response.status === 200 && data.success) {
+        setClustersData(data.clusters);
       } else {
-        showNotificationTHONGPHUM('Analytics Error', dataTHONGPHUM.message || 'Failed to analyze salary structure');
+        showNotification('Analytics Error', data.message || 'Failed to analyze salary structure');
       }
-    } catch (errorTHONGPHUM) {
-      showNotificationTHONGPHUM('Network Error', 'Could not reach server to run clustering algorithm.');
+    } catch (error) {
+      showNotification('Network Error', 'Could not reach server to run clustering algorithm.');
     } finally {
-      setClusteringLoadingTHONGPHUM(false);
+      setClusteringLoading(false);
     }
   };
 
   // =========================================================
   // VIEW 1: LOGIN SCREEN
   // =========================================================
-  if (!isLoggedInTHONGPHUM) {
+  if (!isLoggedIn) {
     return (
-      <SafeAreaView style={stylesTHONGPHUM.screenContainer}>
+      <SafeAreaView style={styles.screenContainer}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={stylesTHONGPHUM.loginCenterContainer}
+          style={styles.loginCenterContainer}
         >
-          <View style={stylesTHONGPHUM.loginCard}>
-            <View style={stylesTHONGPHUM.loginHeaderArea}>
-              <Text style={stylesTHONGPHUM.loginLogoText}>🏢 HR Portal</Text>
-              <Text style={stylesTHONGPHUM.loginTitleText}>HR Manager & Salary Analytics</Text>
-              <Text style={stylesTHONGPHUM.loginSubtitleText}>Final Exam: Internet Programming (2026)</Text>
+          <View style={styles.loginCard}>
+            <View style={styles.loginHeaderArea}>
+              <Text style={styles.loginLogoText}>🏢 HR Portal</Text>
+              <Text style={styles.loginTitleText}>HR Manager & Salary Analytics</Text>
+              <Text style={styles.loginSubtitleText}>Final Exam: Internet Programming (2026)</Text>
             </View>
 
-            <View style={stylesTHONGPHUM.inputGroup}>
-              <Text style={stylesTHONGPHUM.inputLabel}>Username</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Username</Text>
               <TextInput
-                style={stylesTHONGPHUM.textInput}
+                style={styles.textInput}
                 placeholder="Enter username (admin)"
-                value={usernameInputTHONGPHUM}
-                onChangeText={setUsernameInputTHONGPHUM}
+                value={usernameInput}
+                onChangeText={setUsernameInput}
                 autoCapitalize="none"
               />
             </View>
 
-            <View style={stylesTHONGPHUM.inputGroup}>
-              <Text style={stylesTHONGPHUM.inputLabel}>Password</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Password</Text>
               <TextInput
-                style={stylesTHONGPHUM.textInput}
+                style={styles.textInput}
                 placeholder="Enter password (password123)"
                 secureTextEntry
-                value={passwordInputTHONGPHUM}
-                onChangeText={setPasswordInputTHONGPHUM}
+                value={passwordInput}
+                onChangeText={setPasswordInput}
               />
             </View>
 
             <TouchableOpacity
-              style={[stylesTHONGPHUM.primaryButton, loginLoadingTHONGPHUM && stylesTHONGPHUM.disabledButton]}
-              onPress={handleLoginTHONGPHUM}
-              disabled={loginLoadingTHONGPHUM}
+              style={[styles.primaryButton, loginLoading && styles.disabledButton]}
+              onPress={handleLogin}
+              disabled={loginLoading}
             >
-              {loginLoadingTHONGPHUM ? (
+              {loginLoading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={stylesTHONGPHUM.primaryButtonText}>Sign In</Text>
+                <Text style={styles.primaryButtonText}>Sign In</Text>
               )}
             </TouchableOpacity>
 
-            <View style={stylesTHONGPHUM.hintBox}>
-              <Text style={stylesTHONGPHUM.hintTitle}>Demo Credentials:</Text>
-              <Text style={stylesTHONGPHUM.hintText}>Username: <Text style={stylesTHONGPHUM.boldText}>admin</Text></Text>
-              <Text style={stylesTHONGPHUM.hintText}>Password: <Text style={stylesTHONGPHUM.boldText}>password123</Text></Text>
+            <View style={styles.hintBox}>
+              <Text style={styles.hintTitle}>Demo Credentials:</Text>
+              <Text style={styles.hintText}>Username: <Text style={styles.boldText}>admin</Text></Text>
+              <Text style={styles.hintText}>Password: <Text style={styles.boldText}>password123</Text></Text>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -328,84 +328,84 @@ export default function App() {
   // VIEW 2: DASHBOARD SCREEN (CRUD + K-MEANS ANALYTICS)
   // =========================================================
   return (
-    <SafeAreaView style={stylesTHONGPHUM.screenContainer}>
-      <ScrollView contentContainerStyle={stylesTHONGPHUM.dashboardScrollContainer}>
+    <SafeAreaView style={styles.screenContainer}>
+      <ScrollView contentContainerStyle={styles.dashboardScrollContainer}>
         {/* Top Navigation Bar */}
-        <View style={stylesTHONGPHUM.navbar}>
+        <View style={styles.navbar}>
           <View>
-            <Text style={stylesTHONGPHUM.navTitle}>HR Manager Dashboard</Text>
-            <Text style={stylesTHONGPHUM.navSubtitle}>Internet Programming Final 2026</Text>
+            <Text style={styles.navTitle}>HR Manager Dashboard</Text>
+            <Text style={styles.navSubtitle}>Internet Programming Final 2026</Text>
           </View>
-          <TouchableOpacity style={stylesTHONGPHUM.logoutButton} onPress={handleLogoutTHONGPHUM}>
-            <Text style={stylesTHONGPHUM.logoutButtonText}>Sign Out</Text>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
 
         {/* Phase 2: Salary Clustering Analytics Section */}
-        <View style={stylesTHONGPHUM.sectionCard}>
-          <View style={stylesTHONGPHUM.sectionHeaderRow}>
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
             <View>
-              <Text style={stylesTHONGPHUM.sectionTitle}>🧠 Phase 2: Salary Clustering Analytics</Text>
-              <Text style={stylesTHONGPHUM.sectionDescription}>
+              <Text style={styles.sectionTitle}>🧠 Phase 2: Salary Clustering Analytics</Text>
+              <Text style={styles.sectionDescription}>
                 1D K-Means algorithm (k=3) groups employee salaries into 3 tiers.
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
-            style={[stylesTHONGPHUM.analyticsButton, clusteringLoadingTHONGPHUM && stylesTHONGPHUM.disabledButton]}
-            onPress={handleAnalyzeSalaryTHONGPHUM}
-            disabled={clusteringLoadingTHONGPHUM}
+            style={[styles.analyticsButton, clusteringLoading && styles.disabledButton]}
+            onPress={handleAnalyzeSalary}
+            disabled={clusteringLoading}
           >
-            {clusteringLoadingTHONGPHUM ? (
+            {clusteringLoading ? (
               <ActivityIndicator color="#FFFFFF" style={{ marginRight: 8 }} />
             ) : null}
-            <Text style={stylesTHONGPHUM.analyticsButtonText}>
-              {clusteringLoadingTHONGPHUM ? 'Analyzing Salaries...' : '📊 Analyze Salary Structure'}
+            <Text style={styles.analyticsButtonText}>
+              {clusteringLoading ? 'Analyzing Salaries...' : '📊 Analyze Salary Structure'}
             </Text>
           </TouchableOpacity>
 
           {/* Loading Indicator while waiting for server's response */}
-          {clusteringLoadingTHONGPHUM && (
-            <View style={stylesTHONGPHUM.loadingBox}>
+          {clusteringLoading && (
+            <View style={styles.loadingBox}>
               <ActivityIndicator size="large" color="#4F46E5" />
-              <Text style={stylesTHONGPHUM.loadingText}>Running 1D K-Means clustering algorithm...</Text>
+              <Text style={styles.loadingText}>Running 1D K-Means clustering algorithm...</Text>
             </View>
           )}
 
           {/* Cluster Summary Cards */}
-          {clustersDataTHONGPHUM && !clusteringLoadingTHONGPHUM && (
-            <View style={stylesTHONGPHUM.clustersContainer}>
-              <Text style={stylesTHONGPHUM.clustersTitle}>Clustering Results (k=3 Tiers):</Text>
-              <View style={stylesTHONGPHUM.cardsGrid}>
-                {clustersDataTHONGPHUM.map((clusterItemTHONGPHUM, idxTHONGPHUM) => {
-                  const tierColorsTHONGPHUM = [
+          {clustersData && !clusteringLoading && (
+            <View style={styles.clustersContainer}>
+              <Text style={styles.clustersTitle}>Clustering Results (k=3 Tiers):</Text>
+              <View style={styles.cardsGrid}>
+                {clustersData.map((clusterItem, idx) => {
+                  const tierColors = [
                     { bg: '#EFF6FF', border: '#3B82F6', badge: '#DBEAFE', text: '#1D4ED8' },
                     { bg: '#F5F3FF', border: '#8B5CF6', badge: '#EDE9FE', text: '#6D28D9' },
                     { bg: '#FFFBEB', border: '#F59E0B', badge: '#FEF3C7', text: '#B45309' },
                   ];
-                  const colorSchemeTHONGPHUM = tierColorsTHONGPHUM[idxTHONGPHUM % 3];
+                  const colorScheme = tierColors[idx % 3];
 
                   return (
                     <View
-                      key={clusterItemTHONGPHUM.group}
+                      key={clusterItem.group}
                       style={[
-                        stylesTHONGPHUM.summaryCard,
-                        { backgroundColor: colorSchemeTHONGPHUM.bg, borderColor: colorSchemeTHONGPHUM.border },
+                        styles.summaryCard,
+                        { backgroundColor: colorScheme.bg, borderColor: colorScheme.border },
                       ]}
                     >
-                      <View style={[stylesTHONGPHUM.tierBadge, { backgroundColor: colorSchemeTHONGPHUM.badge }]}>
-                        <Text style={[stylesTHONGPHUM.tierBadgeText, { color: colorSchemeTHONGPHUM.text }]}>
-                          {clusterItemTHONGPHUM.group}
+                      <View style={[styles.tierBadge, { backgroundColor: colorScheme.badge }]}>
+                        <Text style={[styles.tierBadgeText, { color: colorScheme.text }]}>
+                          {clusterItem.group}
                         </Text>
                       </View>
-                      <Text style={stylesTHONGPHUM.cardCentroidLabel}>Average Base Salary</Text>
-                      <Text style={[stylesTHONGPHUM.cardCentroidValue, { color: colorSchemeTHONGPHUM.text }]}>
-                        ฿{Number(clusterItemTHONGPHUM.centroid).toLocaleString()}
+                      <Text style={styles.cardCentroidLabel}>Average Base Salary</Text>
+                      <Text style={[styles.cardCentroidValue, { color: colorScheme.text }]}>
+                        ฿{Number(clusterItem.centroid).toLocaleString()}
                       </Text>
-                      <View style={stylesTHONGPHUM.cardCountRow}>
-                        <Text style={stylesTHONGPHUM.cardCountLabel}>Employees:</Text>
-                        <Text style={stylesTHONGPHUM.cardCountValue}>{clusterItemTHONGPHUM.count} people</Text>
+                      <View style={styles.cardCountRow}>
+                        <Text style={styles.cardCountLabel}>Employees:</Text>
+                        <Text style={styles.cardCountValue}>{clusterItem.count} people</Text>
                       </View>
                     </View>
                   );
@@ -416,130 +416,130 @@ export default function App() {
         </View>
 
         {/* Phase 1: Add Employee Form */}
-        <View style={stylesTHONGPHUM.sectionCard}>
-          <Text style={stylesTHONGPHUM.sectionTitle}>➕ Add New Employee</Text>
-          <Text style={stylesTHONGPHUM.sectionDescription}>
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>➕ Add New Employee</Text>
+          <Text style={styles.sectionDescription}>
             Enter employee details. All fields are required before submission.
           </Text>
 
-          {formErrorTHONGPHUM ? (
-            <View style={stylesTHONGPHUM.errorAlert}>
-              <Text style={stylesTHONGPHUM.errorAlertText}>⚠️ {formErrorTHONGPHUM}</Text>
+          {formError ? (
+            <View style={styles.errorAlert}>
+              <Text style={styles.errorAlertText}>⚠️ {formError}</Text>
             </View>
           ) : null}
 
-          <View style={stylesTHONGPHUM.formRow}>
-            <View style={stylesTHONGPHUM.formInputFlex}>
-              <Text style={stylesTHONGPHUM.inputLabel}>Employee Name *</Text>
+          <View style={styles.formRow}>
+            <View style={styles.formInputFlex}>
+              <Text style={styles.inputLabel}>Employee Name *</Text>
               <TextInput
-                style={stylesTHONGPHUM.textInput}
+                style={styles.textInput}
                 placeholder="e.g. Alex Johnson"
-                value={nameInputTHONGPHUM}
-                onChangeText={setNameInputTHONGPHUM}
+                value={nameInput}
+                onChangeText={setNameInput}
               />
             </View>
-            <View style={stylesTHONGPHUM.formInputFlex}>
-              <Text style={stylesTHONGPHUM.inputLabel}>Position / Role *</Text>
+            <View style={styles.formInputFlex}>
+              <Text style={styles.inputLabel}>Position / Role *</Text>
               <TextInput
-                style={stylesTHONGPHUM.textInput}
+                style={styles.textInput}
                 placeholder="e.g. Frontend Engineer"
-                value={positionInputTHONGPHUM}
-                onChangeText={setPositionInputTHONGPHUM}
+                value={positionInput}
+                onChangeText={setPositionInput}
               />
             </View>
-            <View style={stylesTHONGPHUM.formInputFlex}>
-              <Text style={stylesTHONGPHUM.inputLabel}>Salary (THB) *</Text>
+            <View style={styles.formInputFlex}>
+              <Text style={styles.inputLabel}>Salary (THB) *</Text>
               <TextInput
-                style={stylesTHONGPHUM.textInput}
+                style={styles.textInput}
                 placeholder="e.g. 50000"
                 keyboardType="numeric"
-                value={salaryInputTHONGPHUM}
-                onChangeText={setSalaryInputTHONGPHUM}
+                value={salaryInput}
+                onChangeText={setSalaryInput}
               />
             </View>
           </View>
 
           <TouchableOpacity
-            style={[stylesTHONGPHUM.addEmployeeButton, addingEmployeeTHONGPHUM && stylesTHONGPHUM.disabledButton]}
-            onPress={handleAddEmployeeTHONGPHUM}
-            disabled={addingEmployeeTHONGPHUM}
+            style={[styles.addEmployeeButton, addingEmployee && styles.disabledButton]}
+            onPress={handleAddEmployee}
+            disabled={addingEmployee}
           >
-            {addingEmployeeTHONGPHUM ? (
+            {addingEmployee ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={stylesTHONGPHUM.addEmployeeButtonText}>Add Employee Record</Text>
+              <Text style={styles.addEmployeeButtonText}>Add Employee Record</Text>
             )}
           </TouchableOpacity>
         </View>
 
         {/* Phase 1: Employee Records List */}
-        <View style={stylesTHONGPHUM.sectionCard}>
-          <View style={stylesTHONGPHUM.sectionHeaderRow}>
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
             <View>
-              <Text style={stylesTHONGPHUM.sectionTitle}>👥 Employee Records List</Text>
-              <Text style={stylesTHONGPHUM.sectionDescription}>
-                Total: {employeesTHONGPHUM.length} employees currently recorded.
+              <Text style={styles.sectionTitle}>👥 Employee Records List</Text>
+              <Text style={styles.sectionDescription}>
+                Total: {employees.length} employees currently recorded.
               </Text>
             </View>
-            <TouchableOpacity style={stylesTHONGPHUM.refreshButton} onPress={fetchEmployeesTHONGPHUM}>
-              <Text style={stylesTHONGPHUM.refreshButtonText}>🔄 Refresh</Text>
+            <TouchableOpacity style={styles.refreshButton} onPress={fetchEmployees}>
+              <Text style={styles.refreshButtonText}>🔄 Refresh</Text>
             </TouchableOpacity>
           </View>
 
-          {loadingEmployeesTHONGPHUM ? (
-            <View style={stylesTHONGPHUM.loadingBox}>
+          {loadingEmployees ? (
+            <View style={styles.loadingBox}>
               <ActivityIndicator size="large" color="#4F46E5" />
-              <Text style={stylesTHONGPHUM.loadingText}>Loading employee records...</Text>
+              <Text style={styles.loadingText}>Loading employee records...</Text>
             </View>
-          ) : employeesTHONGPHUM.length === 0 ? (
-            <View style={stylesTHONGPHUM.emptyBox}>
-              <Text style={stylesTHONGPHUM.emptyText}>No employees found. Add one above!</Text>
+          ) : employees.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyText}>No employees found. Add one above!</Text>
             </View>
           ) : (
-            employeesTHONGPHUM.map((empTHONGPHUM) => {
-              const isActiveTHONGPHUM = empTHONGPHUM.status === 'Active';
+            employees.map((emp) => {
+              const isActive = emp.status === 'Active';
               return (
-                <View key={empTHONGPHUM.id} style={stylesTHONGPHUM.employeeCard}>
-                  <View style={stylesTHONGPHUM.employeeInfoCol}>
-                    <View style={stylesTHONGPHUM.employeeNameRow}>
-                      <Text style={stylesTHONGPHUM.employeeNameText}>{empTHONGPHUM.name}</Text>
+                <View key={emp.id} style={styles.employeeCard}>
+                  <View style={styles.employeeInfoCol}>
+                    <View style={styles.employeeNameRow}>
+                      <Text style={styles.employeeNameText}>{emp.name}</Text>
                       <View
                         style={[
-                          stylesTHONGPHUM.statusBadge,
-                          isActiveTHONGPHUM ? stylesTHONGPHUM.statusActive : stylesTHONGPHUM.statusOnLeave,
+                          styles.statusBadge,
+                          isActive ? styles.statusActive : styles.statusOnLeave,
                         ]}
                       >
                         <Text
                           style={[
-                            stylesTHONGPHUM.statusBadgeText,
-                            isActiveTHONGPHUM ? stylesTHONGPHUM.statusActiveText : stylesTHONGPHUM.statusOnLeaveText,
+                            styles.statusBadgeText,
+                            isActive ? styles.statusActiveText : styles.statusOnLeaveText,
                           ]}
                         >
-                          {empTHONGPHUM.status}
+                          {emp.status}
                         </Text>
                       </View>
                     </View>
-                    <Text style={stylesTHONGPHUM.employeePositionText}>💼 {empTHONGPHUM.position}</Text>
-                    <Text style={stylesTHONGPHUM.employeeSalaryText}>
-                      💰 ฿{Number(empTHONGPHUM.salary).toLocaleString()} / month
+                    <Text style={styles.employeePositionText}>💼 {emp.position}</Text>
+                    <Text style={styles.employeeSalaryText}>
+                      💰 ฿{Number(emp.salary).toLocaleString()} / month
                     </Text>
                   </View>
 
-                  <View style={stylesTHONGPHUM.employeeActionCol}>
+                  <View style={styles.employeeActionCol}>
                     <TouchableOpacity
-                      style={stylesTHONGPHUM.toggleStatusButton}
-                      onPress={() => handleToggleStatusTHONGPHUM(empTHONGPHUM.id)}
+                      style={styles.toggleStatusButton}
+                      onPress={() => handleToggleStatus(emp.id)}
                     >
-                      <Text style={stylesTHONGPHUM.toggleStatusButtonText}>
-                        Toggle Status ({isActiveTHONGPHUM ? 'To Leave' : 'To Active'})
+                      <Text style={styles.toggleStatusButtonText}>
+                        Toggle Status ({isActive ? 'To Leave' : 'To Active'})
                       </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={stylesTHONGPHUM.deleteButton}
-                      onPress={() => confirmDeleteEmployeeTHONGPHUM(empTHONGPHUM)}
+                      style={styles.deleteButton}
+                      onPress={() => confirmDeleteEmployee(emp)}
                     >
-                      <Text style={stylesTHONGPHUM.deleteButtonText}>🗑️ Delete</Text>
+                      <Text style={styles.deleteButtonText}>🗑️ Delete</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -555,7 +555,7 @@ export default function App() {
 // ---------------------------------------------------------
 // STYLESHEET
 // ---------------------------------------------------------
-const stylesTHONGPHUM = StyleSheet.create({
+const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     backgroundColor: '#F8FAFC',

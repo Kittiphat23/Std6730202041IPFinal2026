@@ -1,11 +1,13 @@
 -- Final Exam: Internet Programming (2026)
 -- Database Table Creation for ip_std6730202041
--- Table Name: final_employees
+-- Table Name: Kittiphat_THONGPHUM_EMPLOYEES
 
 CREATE DATABASE IF NOT EXISTS `ip_std6730202041` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `ip_std6730202041`;
 
-CREATE TABLE IF NOT EXISTS `final_employees` (
+DROP TABLE IF EXISTS `final_employees`;
+
+CREATE TABLE IF NOT EXISTS `Kittiphat_THONGPHUM_EMPLOYEES` (
   `id` VARCHAR(50) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `position` VARCHAR(255) NOT NULL,
@@ -16,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `final_employees` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Initial Mock Data (at least 5 employees as required by exam)
-INSERT INTO `final_employees` (`id`, `name`, `position`, `status`, `salary`) VALUES
+INSERT INTO `Kittiphat_THONGPHUM_EMPLOYEES` (`id`, `name`, `position`, `status`, `salary`) VALUES
 ('1', 'John Doe', 'Software Engineer', 'Active', 45000),
 ('2', 'Jane Smith', 'Senior Developer', 'Active', 75000),
 ('3', 'Michael Scott', 'Regional Manager', 'On Leave', 95000),

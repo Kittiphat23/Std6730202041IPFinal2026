@@ -1,12 +1,12 @@
 require('dotenv').config();
-const mysqlTHONGPHUM = require('mysql2/promise');
+const mysql = require('mysql2/promise');
 
-let dbPoolTHONGPHUM = null;
-let isDbConnectedTHONGPHUM = false;
+let dbPool = null;
+let isDbConnected = false;
 
-const initDbPoolTHONGPHUM = () => {
+const initDbPool = () => {
   try {
-    const configTHONGPHUM = {
+    const config = {
       host: process.env.DB_HOST || 'localhost',
       port: Number(process.env.DB_PORT) || 3306,
       user: process.env.DB_USER || 'std6730202041',
@@ -17,111 +17,111 @@ const initDbPoolTHONGPHUM = () => {
       queueLimit: 0,
     };
 
-    dbPoolTHONGPHUM = mysqlTHONGPHUM.createPool(configTHONGPHUM);
-    return dbPoolTHONGPHUM;
-  } catch (errorTHONGPHUM) {
-    console.warn('[MySQL Warning] Failed to initialize pool:', errorTHONGPHUM.message);
-    dbPoolTHONGPHUM = null;
+    dbPool = mysql.createPool(config);
+    return dbPool;
+  } catch (error) {
+    console.warn('[MySQL Warning] Failed to initialize pool:', error.message);
+    dbPool = null;
     return null;
   }
 };
 
-const testDbConnectionTHONGPHUM = async () => {
+const testDbConnection = async () => {
   if (process.env.USE_MYSQL === 'false') {
     console.log('[MySQL] USE_MYSQL is disabled. Running pure In-memory mode.');
-    isDbConnectedTHONGPHUM = false;
+    isDbConnected = false;
     return false;
   }
 
   try {
-    if (!dbPoolTHONGPHUM) {
-      initDbPoolTHONGPHUM();
+    if (!dbPool) {
+      initDbPool();
     }
-    const connectionTHONGPHUM = await dbPoolTHONGPHUM.getConnection();
-    await connectionTHONGPHUM.query('SELECT 1');
-    connectionTHONGPHUM.release();
-    isDbConnectedTHONGPHUM = true;
+    const connection = await dbPool.getConnection();
+    await connection.query('SELECT 1');
+    connection.release();
+    isDbConnected = true;
     console.log('[MySQL] Connected successfully to database:', process.env.DB_NAME);
     return true;
-  } catch (errorTHONGPHUM) {
-    console.warn('[MySQL Notice] Database not reachable. Operating with In-memory Array fallback:', errorTHONGPHUM.message);
-    isDbConnectedTHONGPHUM = false;
+  } catch (error) {
+    console.warn('[MySQL Notice] Database not reachable. Operating with In-memory Array fallback:', error.message);
+    isDbConnected = false;
     return false;
   }
 };
 
-const getEmployeesFromDbTHONGPHUM = async () => {
-  if (!isDbConnectedTHONGPHUM || !dbPoolTHONGPHUM) return null;
+const getEmployeesFromDb = async () => {
+  if (!isDbConnected || !dbPool) return null;
   try {
-    const [rowsTHONGPHUM] = await dbPoolTHONGPHUM.query(
-      'SELECT id, name, position, status, salary FROM final_employees ORDER BY CAST(id AS UNSIGNED) ASC'
+    const [rows] = await dbPool.query(
+      'SELECT id, name, position, status, salary FROM Kittiphat_THONGPHUM_EMPLOYEES ORDER BY CAST(id AS UNSIGNED) ASC'
     );
-    return rowsTHONGPHUM.map((rowTHONGPHUM) => ({
-      id: String(rowTHONGPHUM.id),
-      name: rowTHONGPHUM.name,
-      position: rowTHONGPHUM.position,
-      status: rowTHONGPHUM.status,
-      salary: Number(rowTHONGPHUM.salary),
+    return rows.map((row) => ({
+      id: String(row.id),
+      name: row.name,
+      position: row.position,
+      status: row.status,
+      salary: Number(row.salary),
     }));
-  } catch (errorTHONGPHUM) {
-    console.warn('[MySQL] Error querying final_employees:', errorTHONGPHUM.message);
+  } catch (error) {
+    console.warn('[MySQL] Error querying Kittiphat_THONGPHUM_EMPLOYEES:', error.message);
     return null;
   }
 };
 
-const insertEmployeeToDbTHONGPHUM = async (employeeTHONGPHUM) => {
-  if (!isDbConnectedTHONGPHUM || !dbPoolTHONGPHUM) return false;
+const insertEmployeeToDb = async (employee) => {
+  if (!isDbConnected || !dbPool) return false;
   try {
-    await dbPoolTHONGPHUM.query(
-      'INSERT INTO final_employees (id, name, position, status, salary) VALUES (?, ?, ?, ?, ?)',
+    await dbPool.query(
+      'INSERT INTO Kittiphat_THONGPHUM_EMPLOYEES (id, name, position, status, salary) VALUES (?, ?, ?, ?, ?)',
       [
-        String(employeeTHONGPHUM.id),
-        employeeTHONGPHUM.name,
-        employeeTHONGPHUM.position,
-        employeeTHONGPHUM.status,
-        Number(employeeTHONGPHUM.salary),
+        String(employee.id),
+        employee.name,
+        employee.position,
+        employee.status,
+        Number(employee.salary),
       ]
     );
     return true;
-  } catch (errorTHONGPHUM) {
-    console.warn('[MySQL] Error inserting into final_employees:', errorTHONGPHUM.message);
+  } catch (error) {
+    console.warn('[MySQL] Error inserting into Kittiphat_THONGPHUM_EMPLOYEES:', error.message);
     return false;
   }
 };
 
-const updateEmployeeStatusInDbTHONGPHUM = async (idTHONGPHUM, statusTHONGPHUM) => {
-  if (!isDbConnectedTHONGPHUM || !dbPoolTHONGPHUM) return false;
+const updateEmployeeStatusInDb = async (id, status) => {
+  if (!isDbConnected || !dbPool) return false;
   try {
-    await dbPoolTHONGPHUM.query(
-      'UPDATE final_employees SET status = ? WHERE id = ?',
-      [statusTHONGPHUM, String(idTHONGPHUM)]
+    await dbPool.query(
+      'UPDATE Kittiphat_THONGPHUM_EMPLOYEES SET status = ? WHERE id = ?',
+      [status, String(id)]
     );
     return true;
-  } catch (errorTHONGPHUM) {
-    console.warn('[MySQL] Error updating final_employees:', errorTHONGPHUM.message);
+  } catch (error) {
+    console.warn('[MySQL] Error updating Kittiphat_THONGPHUM_EMPLOYEES:', error.message);
     return false;
   }
 };
 
-const deleteEmployeeFromDbTHONGPHUM = async (idTHONGPHUM) => {
-  if (!isDbConnectedTHONGPHUM || !dbPoolTHONGPHUM) return false;
+const deleteEmployeeFromDb = async (id) => {
+  if (!isDbConnected || !dbPool) return false;
   try {
-    await dbPoolTHONGPHUM.query(
-      'DELETE FROM final_employees WHERE id = ?',
-      [String(idTHONGPHUM)]
+    await dbPool.query(
+      'DELETE FROM Kittiphat_THONGPHUM_EMPLOYEES WHERE id = ?',
+      [String(id)]
     );
     return true;
-  } catch (errorTHONGPHUM) {
-    console.warn('[MySQL] Error deleting from final_employees:', errorTHONGPHUM.message);
+  } catch (error) {
+    console.warn('[MySQL] Error deleting from Kittiphat_THONGPHUM_EMPLOYEES:', error.message);
     return false;
   }
 };
 
 module.exports = {
-  initDbPoolTHONGPHUM,
-  testDbConnectionTHONGPHUM,
-  getEmployeesFromDbTHONGPHUM,
-  insertEmployeeToDbTHONGPHUM,
-  updateEmployeeStatusInDbTHONGPHUM,
-  deleteEmployeeFromDbTHONGPHUM,
+  initDbPool,
+  testDbConnection,
+  getEmployeesFromDb,
+  insertEmployeeToDb,
+  updateEmployeeStatusInDb,
+  deleteEmployeeFromDb,
 };

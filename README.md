@@ -3,8 +3,8 @@
 
 **Student ID:** 6730202041  
 **GitHub Repository Naming:** `Std6730202041IPFinal2026`  
-**Database:** `ip_std6730202041` (Table: `final_employees`)  
-**Variable Naming Watermark:** Custom variables, functions, and React states end with `THONGPHUM`.
+**Database:** `ip_std6730202041` (Table: `Kittiphat_THONGPHUM_EMPLOYEES`)  
+**phpMyAdmin:** `http://nindam.sytes.net/nindamdb/`
 
 ---
 
@@ -18,7 +18,7 @@ Std6730202041IPFinal2026/
 │   ├── db.js                   # MySQL connection pool & fallback helper
 │   ├── kmeans.js               # 1D K-Means clustering algorithm (k=3)
 │   ├── package.json            # Backend dependencies & scripts
-│   ├── schema.sql              # SQL script to create final_employees table & mock data
+│   ├── schema.sql              # SQL script to create Kittiphat_THONGPHUM_EMPLOYEES table & mock data
 │   ├── server.js               # Express.js REST API server
 │   └── test_api.js             # Automated API test suite
 ├── frontend/
@@ -77,7 +77,8 @@ Std6730202041IPFinal2026/
 
 ### Architecture & Database (10 Points)
 - **Primary Store:** In-memory Array (strictly compliant with the exam specification).
-- **Database Store:** MySQL table `final_employees` in database `ip_std6730202041` (completely isolated from previous DormEase tables).
+- **Database Store:** MySQL table `Kittiphat_THONGPHUM_EMPLOYEES` in database `ip_std6730202041` (completely isolated from previous DormEase tables).
+- **phpMyAdmin:** Accessible via `http://nindam.sytes.net/nindamdb/index.php?route=/database/structure&db=ip_std6730202041`.
 - **Graceful Fallback:** If MySQL is offline during examiner evaluation, the backend seamlessly falls back to pure In-Memory Array without crashing.
 
 ---
@@ -109,27 +110,11 @@ npm test
 
 ---
 
-## 🏷️ Variable Naming Convention
-Per the exam requirements, all custom variables, custom functions, and React states end with `THONGPHUM`:
-- `employeesMemoryTHONGPHUM`
-- `newEmployeeTHONGPHUM`
-- `calculateKMeans1DTHONGPHUM`
-- `handleLoginTHONGPHUM`
-- `handleAddEmployeeTHONGPHUM`
-- `handleToggleStatusTHONGPHUM`
-- `confirmDeleteEmployeeTHONGPHUM`
-- `handleAnalyzeSalaryTHONGPHUM`
-- `clustersDataTHONGPHUM`
-- etc.
-
----
-
 ## 📤 Git Repository Setup & Push
 
 ```bash
-git init
 git add .
-git commit -m "feat: complete Final Exam HR Manager and Salary Analytics System"
+git commit -m "feat: use Kittiphat_THONGPHUM_EMPLOYEES table and clean code"
 git branch -M main
 git remote add origin https://github.com/YOUR_GITHUB_USERNAME/Std6730202041IPFinal2026.git
 git push -u origin main

@@ -1,24 +1,24 @@
 require('dotenv').config();
-const expressTHONGPHUM = require('express');
-const corsTHONGPHUM = require('cors');
-const { calculateKMeans1DTHONGPHUM } = require('./kmeans');
+const express = require('express');
+const cors = require('cors');
+const { calculateKMeans1D } = require('./kmeans');
 const {
-  testDbConnectionTHONGPHUM,
-  getEmployeesFromDbTHONGPHUM,
-  insertEmployeeToDbTHONGPHUM,
-  updateEmployeeStatusInDbTHONGPHUM,
-  deleteEmployeeFromDbTHONGPHUM,
+  testDbConnection,
+  getEmployeesFromDb,
+  insertEmployeeToDb,
+  updateEmployeeStatusInDb,
+  deleteEmployeeFromDb,
 } = require('./db');
 
-const appTHONGPHUM = expressTHONGPHUM();
-const portTHONGPHUM = process.env.PORT || 5000;
+const app = express();
+const port = process.env.PORT || 5000;
 
 // Enable CORS and JSON body parser
-appTHONGPHUM.use(corsTHONGPHUM());
-appTHONGPHUM.use(expressTHONGPHUM.json());
+app.use(cors());
+app.use(express.json());
 
 // Initial In-Memory Array (At least 5 mock employees as strictly required by exam)
-const defaultEmployeesTHONGPHUM = [
+const defaultEmployees = [
   {
     id: '1',
     name: 'John Doe',
@@ -77,49 +77,49 @@ const defaultEmployeesTHONGPHUM = [
   },
 ];
 
-let employeesMemoryTHONGPHUM = [...defaultEmployeesTHONGPHUM];
+let employeesMemory = [...defaultEmployees];
 
 // Initialize DB and sync if available
 (async () => {
-  const isDbReadyTHONGPHUM = await testDbConnectionTHONGPHUM();
-  if (isDbReadyTHONGPHUM) {
-    const dbEmployeesTHONGPHUM = await getEmployeesFromDbTHONGPHUM();
-    if (dbEmployeesTHONGPHUM && dbEmployeesTHONGPHUM.length > 0) {
-      employeesMemoryTHONGPHUM = dbEmployeesTHONGPHUM;
-      console.log(`[Database Sync] Loaded ${employeesMemoryTHONGPHUM.length} employees from MySQL table final_employees.`);
+  const isDbReady = await testDbConnection();
+  if (isDbReady) {
+    const dbEmployees = await getEmployeesFromDb();
+    if (dbEmployees && dbEmployees.length > 0) {
+      employeesMemory = dbEmployees;
+      console.log(`[Database Sync] Loaded ${employeesMemory.length} employees from MySQL table Kittiphat_THONGPHUM_EMPLOYEES.`);
     } else {
-      console.log('[Database Sync] Seeding initial mock employees into MySQL final_employees...');
-      for (const empTHONGPHUM of defaultEmployeesTHONGPHUM) {
-        await insertEmployeeToDbTHONGPHUM(empTHONGPHUM);
+      console.log('[Database Sync] Seeding initial mock employees into MySQL Kittiphat_THONGPHUM_EMPLOYEES...');
+      for (const emp of defaultEmployees) {
+        await insertEmployeeToDb(emp);
       }
     }
   }
 })();
 
 // Helper to generate next unique ID
-const getNextIdTHONGPHUM = () => {
-  if (employeesMemoryTHONGPHUM.length === 0) return '1';
-  const maxIdTHONGPHUM = employeesMemoryTHONGPHUM.reduce((maxTHONGPHUM, empTHONGPHUM) => {
-    const numericIdTHONGPHUM = parseInt(empTHONGPHUM.id, 10);
-    return !Number.isNaN(numericIdTHONGPHUM) && numericIdTHONGPHUM > maxTHONGPHUM ? numericIdTHONGPHUM : maxTHONGPHUM;
+const getNextId = () => {
+  if (employeesMemory.length === 0) return '1';
+  const maxId = employeesMemory.reduce((max, emp) => {
+    const numericId = parseInt(emp.id, 10);
+    return !Number.isNaN(numericId) && numericId > max ? numericId : max;
   }, 0);
-  return String(maxIdTHONGPHUM + 1);
+  return String(maxId + 1);
 };
 
 // =========================================================================
 // 1. Authentication (Login): POST /api/login
 // =========================================================================
-appTHONGPHUM.post('/api/login', (reqTHONGPHUM, resTHONGPHUM) => {
-  const { username: usernameTHONGPHUM, password: passwordTHONGPHUM } = reqTHONGPHUM.body || {};
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body || {};
 
-  if (usernameTHONGPHUM === 'admin' && passwordTHONGPHUM === 'password123') {
-    return resTHONGPHUM.status(200).json({
+  if (username === 'admin' && password === 'password123') {
+    return res.status(200).json({
       success: true,
       token: 'mock-jwt-token',
     });
   }
 
-  return resTHONGPHUM.status(401).json({
+  return res.status(401).json({
     success: false,
     message: 'Invalid username or password',
   });
@@ -130,114 +130,114 @@ appTHONGPHUM.post('/api/login', (reqTHONGPHUM, resTHONGPHUM) => {
 // =========================================================================
 
 // [GET] /api/employees - Return all employee records
-appTHONGPHUM.get('/api/employees', (reqTHONGPHUM, resTHONGPHUM) => {
-  return resTHONGPHUM.status(200).json(employeesMemoryTHONGPHUM);
+app.get('/api/employees', (req, res) => {
+  return res.status(200).json(employeesMemory);
 });
 
 // [POST] /api/employees - Add a new employee
 // Must receive name, position, and salary. If any field is empty, respond with Status 400 Bad Request.
-appTHONGPHUM.post('/api/employees', async (reqTHONGPHUM, resTHONGPHUM) => {
-  const { name: nameTHONGPHUM, position: positionTHONGPHUM, salary: salaryTHONGPHUM } = reqTHONGPHUM.body || {};
+app.post('/api/employees', async (req, res) => {
+  const { name, position, salary } = req.body || {};
 
   // Validation: Check for presence and non-empty strings/valid number
-  const isNameEmptyTHONGPHUM = nameTHONGPHUM === undefined || nameTHONGPHUM === null || String(nameTHONGPHUM).trim() === '';
-  const isPositionEmptyTHONGPHUM = positionTHONGPHUM === undefined || positionTHONGPHUM === null || String(positionTHONGPHUM).trim() === '';
-  const isSalaryEmptyTHONGPHUM = salaryTHONGPHUM === undefined || salaryTHONGPHUM === null || String(salaryTHONGPHUM).trim() === '' || Number.isNaN(Number(salaryTHONGPHUM));
+  const isNameEmpty = name === undefined || name === null || String(name).trim() === '';
+  const isPositionEmpty = position === undefined || position === null || String(position).trim() === '';
+  const isSalaryEmpty = salary === undefined || salary === null || String(salary).trim() === '' || Number.isNaN(Number(salary));
 
-  if (isNameEmptyTHONGPHUM || isPositionEmptyTHONGPHUM || isSalaryEmptyTHONGPHUM) {
-    return resTHONGPHUM.status(400).json({
+  if (isNameEmpty || isPositionEmpty || isSalaryEmpty) {
+    return res.status(400).json({
       success: false,
       message: 'Name, position, and salary are required and cannot be empty.',
     });
   }
 
-  const numericSalaryTHONGPHUM = Number(salaryTHONGPHUM);
-  if (numericSalaryTHONGPHUM < 0) {
-    return resTHONGPHUM.status(400).json({
+  const numericSalary = Number(salary);
+  if (numericSalary < 0) {
+    return res.status(400).json({
       success: false,
       message: 'Salary must be a positive number.',
     });
   }
 
-  const newEmployeeTHONGPHUM = {
-    id: getNextIdTHONGPHUM(),
-    name: String(nameTHONGPHUM).trim(),
-    position: String(positionTHONGPHUM).trim(),
+  const newEmployee = {
+    id: getNextId(),
+    name: String(name).trim(),
+    position: String(position).trim(),
     status: 'Active',
-    salary: numericSalaryTHONGPHUM,
+    salary: numericSalary,
   };
 
   // Add to primary In-memory storage
-  employeesMemoryTHONGPHUM.push(newEmployeeTHONGPHUM);
+  employeesMemory.push(newEmployee);
 
   // Sync to database if connected
-  insertEmployeeToDbTHONGPHUM(newEmployeeTHONGPHUM).catch((errTHONGPHUM) => {
-    console.warn('[MySQL Sync Error]', errTHONGPHUM.message);
+  insertEmployeeToDb(newEmployee).catch((err) => {
+    console.warn('[MySQL Sync Error]', err.message);
   });
 
-  return resTHONGPHUM.status(201).json({
+  return res.status(201).json({
     success: true,
     message: 'Employee added successfully',
-    employee: newEmployeeTHONGPHUM,
+    employee: newEmployee,
   });
 });
 
 // [PUT] /api/employees/:id/status - Toggle employee status (Active <-> On Leave)
-appTHONGPHUM.put('/api/employees/:id/status', async (reqTHONGPHUM, resTHONGPHUM) => {
-  const employeeIdTHONGPHUM = String(reqTHONGPHUM.params.id);
-  const employeeIndexTHONGPHUM = employeesMemoryTHONGPHUM.findIndex(
-    (empTHONGPHUM) => String(empTHONGPHUM.id) === employeeIdTHONGPHUM
+app.put('/api/employees/:id/status', async (req, res) => {
+  const employeeId = String(req.params.id);
+  const employeeIndex = employeesMemory.findIndex(
+    (emp) => String(emp.id) === employeeId
   );
 
-  if (employeeIndexTHONGPHUM === -1) {
-    return resTHONGPHUM.status(404).json({
+  if (employeeIndex === -1) {
+    return res.status(404).json({
       success: false,
-      message: `Employee with id ${employeeIdTHONGPHUM} not found`,
+      message: `Employee with id ${employeeId} not found`,
     });
   }
 
-  const currentStatusTHONGPHUM = employeesMemoryTHONGPHUM[employeeIndexTHONGPHUM].status;
-  const toggledStatusTHONGPHUM = currentStatusTHONGPHUM === 'Active' ? 'On Leave' : 'Active';
+  const currentStatus = employeesMemory[employeeIndex].status;
+  const toggledStatus = currentStatus === 'Active' ? 'On Leave' : 'Active';
 
-  employeesMemoryTHONGPHUM[employeeIndexTHONGPHUM].status = toggledStatusTHONGPHUM;
+  employeesMemory[employeeIndex].status = toggledStatus;
 
   // Sync to database if connected
-  updateEmployeeStatusInDbTHONGPHUM(employeeIdTHONGPHUM, toggledStatusTHONGPHUM).catch((errTHONGPHUM) => {
-    console.warn('[MySQL Sync Error]', errTHONGPHUM.message);
+  updateEmployeeStatusInDb(employeeId, toggledStatus).catch((err) => {
+    console.warn('[MySQL Sync Error]', err.message);
   });
 
-  return resTHONGPHUM.status(200).json({
+  return res.status(200).json({
     success: true,
-    message: `Status toggled to ${toggledStatusTHONGPHUM}`,
-    employee: employeesMemoryTHONGPHUM[employeeIndexTHONGPHUM],
+    message: `Status toggled to ${toggledStatus}`,
+    employee: employeesMemory[employeeIndex],
   });
 });
 
 // [DELETE] /api/employees/:id - Remove employee from the system
-appTHONGPHUM.delete('/api/employees/:id', async (reqTHONGPHUM, resTHONGPHUM) => {
-  const employeeIdTHONGPHUM = String(reqTHONGPHUM.params.id);
-  const employeeIndexTHONGPHUM = employeesMemoryTHONGPHUM.findIndex(
-    (empTHONGPHUM) => String(empTHONGPHUM.id) === employeeIdTHONGPHUM
+app.delete('/api/employees/:id', async (req, res) => {
+  const employeeId = String(req.params.id);
+  const employeeIndex = employeesMemory.findIndex(
+    (emp) => String(emp.id) === employeeId
   );
 
-  if (employeeIndexTHONGPHUM === -1) {
-    return resTHONGPHUM.status(404).json({
+  if (employeeIndex === -1) {
+    return res.status(404).json({
       success: false,
-      message: `Employee with id ${employeeIdTHONGPHUM} not found`,
+      message: `Employee with id ${employeeId} not found`,
     });
   }
 
-  const removedEmployeeTHONGPHUM = employeesMemoryTHONGPHUM.splice(employeeIndexTHONGPHUM, 1)[0];
+  const removedEmployee = employeesMemory.splice(employeeIndex, 1)[0];
 
   // Sync to database if connected
-  deleteEmployeeFromDbTHONGPHUM(employeeIdTHONGPHUM).catch((errTHONGPHUM) => {
-    console.warn('[MySQL Sync Error]', errTHONGPHUM.message);
+  deleteEmployeeFromDb(employeeId).catch((err) => {
+    console.warn('[MySQL Sync Error]', err.message);
   });
 
-  return resTHONGPHUM.status(200).json({
+  return res.status(200).json({
     success: true,
     message: 'Employee removed successfully',
-    deletedEmployee: removedEmployeeTHONGPHUM,
+    deletedEmployee: removedEmployee,
   });
 });
 
@@ -245,31 +245,31 @@ appTHONGPHUM.delete('/api/employees/:id', async (reqTHONGPHUM, resTHONGPHUM) => 
 // 3. Phase 2: Automated Salary Clustering (K-Means Analytics)
 // [GET] /api/employees/salary-clusters
 // =========================================================================
-appTHONGPHUM.get('/api/employees/salary-clusters', (reqTHONGPHUM, resTHONGPHUM) => {
+app.get('/api/employees/salary-clusters', (req, res) => {
   try {
     // Extract only salary values from current employees
-    const salaryListTHONGPHUM = employeesMemoryTHONGPHUM.map((empTHONGPHUM) => Number(empTHONGPHUM.salary));
+    const salaryList = employeesMemory.map((emp) => Number(emp.salary));
 
     // Run 1D K-Means clustering (k=3)
-    const clusterResultsTHONGPHUM = calculateKMeans1DTHONGPHUM(salaryListTHONGPHUM, 3);
+    const clusterResults = calculateKMeans1D(salaryList, 3);
 
-    return resTHONGPHUM.status(200).json({
+    return res.status(200).json({
       success: true,
-      clusters: clusterResultsTHONGPHUM,
+      clusters: clusterResults,
     });
-  } catch (errorTHONGPHUM) {
-    console.error('K-Means Clustering Error:', errorTHONGPHUM);
-    return resTHONGPHUM.status(500).json({
+  } catch (error) {
+    console.error('K-Means Clustering Error:', error);
+    return res.status(500).json({
       success: false,
       message: 'Failed to process salary clustering',
-      error: errorTHONGPHUM.message,
+      error: error.message,
     });
   }
 });
 
 // Root welcome / health check
-appTHONGPHUM.get('/', (reqTHONGPHUM, resTHONGPHUM) => {
-  resTHONGPHUM.json({
+app.get('/', (req, res) => {
+  res.json({
     message: 'Final Exam: Internet Programming (2026) - HR Manager & Salary Analytics API',
     endpoints: [
       'POST /api/login',
@@ -283,12 +283,12 @@ appTHONGPHUM.get('/', (reqTHONGPHUM, resTHONGPHUM) => {
 });
 
 // Start Express Server
-const serverTHONGPHUM = appTHONGPHUM.listen(portTHONGPHUM, '0.0.0.0', () => {
+const server = app.listen(port, '0.0.0.0', () => {
   console.log('========================================================');
   console.log(`🚀 HR Manager & Salary Analytics API is running!`);
-  console.log(`📡 Local: http://localhost:${portTHONGPHUM}`);
-  console.log(`🌐 Network: http://0.0.0.0:${portTHONGPHUM}`);
+  console.log(`📡 Local: http://localhost:${port}`);
+  console.log(`🌐 Network: http://0.0.0.0:${port}`);
   console.log('========================================================');
 });
 
-module.exports = { appTHONGPHUM, serverTHONGPHUM };
+module.exports = { app, server };

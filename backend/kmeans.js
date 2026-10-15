@@ -3,13 +3,13 @@
  * Formats results into Tier 1, Tier 2, Tier 3 sorted by centroid ascending.
  */
 
-const calculateKMeans1DTHONGPHUM = (salariesInputTHONGPHUM, kTHONGPHUM = 3, maxIterationsTHONGPHUM = 100) => {
-  const validSalariesTHONGPHUM = (salariesInputTHONGPHUM || [])
-    .map((valTHONGPHUM) => Number(valTHONGPHUM))
-    .filter((numTHONGPHUM) => !Number.isNaN(numTHONGPHUM));
+const calculateKMeans1D = (salariesInput, k = 3, maxIterations = 100) => {
+  const validSalaries = (salariesInput || [])
+    .map((val) => Number(val))
+    .filter((num) => !Number.isNaN(num));
 
   // Edge case 1: No data available
-  if (validSalariesTHONGPHUM.length === 0) {
+  if (validSalaries.length === 0) {
     return [
       { group: 'Tier 1', centroid: 0, count: 0 },
       { group: 'Tier 2', centroid: 0, count: 0 },
@@ -18,135 +18,135 @@ const calculateKMeans1DTHONGPHUM = (salariesInputTHONGPHUM, kTHONGPHUM = 3, maxI
   }
 
   // Edge case 2: Less data than k
-  if (validSalariesTHONGPHUM.length <= kTHONGPHUM) {
-    const sortedSalariesTHONGPHUM = [...validSalariesTHONGPHUM].sort((aTHONGPHUM, bTHONGPHUM) => aTHONGPHUM - bTHONGPHUM);
-    const resultClustersTHONGPHUM = [];
-    for (let indexTHONGPHUM = 0; indexTHONGPHUM < kTHONGPHUM; indexTHONGPHUM++) {
-      if (indexTHONGPHUM < sortedSalariesTHONGPHUM.length) {
-        resultClustersTHONGPHUM.push({
-          group: `Tier ${indexTHONGPHUM + 1}`,
-          centroid: Math.round(sortedSalariesTHONGPHUM[indexTHONGPHUM]),
+  if (validSalaries.length <= k) {
+    const sortedSalaries = [...validSalaries].sort((a, b) => a - b);
+    const resultClusters = [];
+    for (let index = 0; index < k; index++) {
+      if (index < sortedSalaries.length) {
+        resultClusters.push({
+          group: `Tier ${index + 1}`,
+          centroid: Math.round(sortedSalaries[index]),
           count: 1,
         });
       } else {
-        resultClustersTHONGPHUM.push({
-          group: `Tier ${indexTHONGPHUM + 1}`,
+        resultClusters.push({
+          group: `Tier ${index + 1}`,
           centroid: 0,
           count: 0,
         });
       }
     }
-    return resultClustersTHONGPHUM;
+    return resultClusters;
   }
 
   // Standard K-Means 1D
-  const sortedValuesTHONGPHUM = [...validSalariesTHONGPHUM].sort((aTHONGPHUM, bTHONGPHUM) => aTHONGPHUM - bTHONGPHUM);
-  const minValTHONGPHUM = sortedValuesTHONGPHUM[0];
-  const maxValTHONGPHUM = sortedValuesTHONGPHUM[sortedValuesTHONGPHUM.length - 1];
+  const sortedValues = [...validSalaries].sort((a, b) => a - b);
+  const minVal = sortedValues[0];
+  const maxVal = sortedValues[sortedValues.length - 1];
 
   // If all values are identical
-  if (minValTHONGPHUM === maxValTHONGPHUM) {
+  if (minVal === maxVal) {
     return [
-      { group: 'Tier 1', centroid: Math.round(minValTHONGPHUM), count: sortedValuesTHONGPHUM.length },
-      { group: 'Tier 2', centroid: Math.round(minValTHONGPHUM), count: 0 },
-      { group: 'Tier 3', centroid: Math.round(minValTHONGPHUM), count: 0 },
+      { group: 'Tier 1', centroid: Math.round(minVal), count: sortedValues.length },
+      { group: 'Tier 2', centroid: Math.round(minVal), count: 0 },
+      { group: 'Tier 3', centroid: Math.round(minVal), count: 0 },
     ];
   }
 
   // Initial Centroids: evenly distributed across sorted values
-  let centroidsTHONGPHUM = [
-    sortedValuesTHONGPHUM[Math.floor(sortedValuesTHONGPHUM.length * 0.15)],
-    sortedValuesTHONGPHUM[Math.floor(sortedValuesTHONGPHUM.length * 0.50)],
-    sortedValuesTHONGPHUM[Math.floor(sortedValuesTHONGPHUM.length * 0.85)],
+  let centroids = [
+    sortedValues[Math.floor(sortedValues.length * 0.15)],
+    sortedValues[Math.floor(sortedValues.length * 0.50)],
+    sortedValues[Math.floor(sortedValues.length * 0.85)],
   ];
 
-  for (let iterTHONGPHUM = 0; iterTHONGPHUM < maxIterationsTHONGPHUM; iterTHONGPHUM++) {
-    const clustersTHONGPHUM = [[], [], []];
+  for (let iter = 0; iter < maxIterations; iter++) {
+    const clusters = [[], [], []];
 
     // Assign each point to the closest centroid
-    for (let iTHONGPHUM = 0; iTHONGPHUM < sortedValuesTHONGPHUM.length; iTHONGPHUM++) {
-      const salaryValTHONGPHUM = sortedValuesTHONGPHUM[iTHONGPHUM];
-      let closestCentroidIndexTHONGPHUM = 0;
-      let minDistanceTHONGPHUM = Math.abs(salaryValTHONGPHUM - centroidsTHONGPHUM[0]);
+    for (let i = 0; i < sortedValues.length; i++) {
+      const salaryVal = sortedValues[i];
+      let closestCentroidIndex = 0;
+      let minDistance = Math.abs(salaryVal - centroids[0]);
 
-      for (let cIndexTHONGPHUM = 1; cIndexTHONGPHUM < kTHONGPHUM; cIndexTHONGPHUM++) {
-        const distanceTHONGPHUM = Math.abs(salaryValTHONGPHUM - centroidsTHONGPHUM[cIndexTHONGPHUM]);
-        if (distanceTHONGPHUM < minDistanceTHONGPHUM) {
-          minDistanceTHONGPHUM = distanceTHONGPHUM;
-          closestCentroidIndexTHONGPHUM = cIndexTHONGPHUM;
+      for (let cIndex = 1; cIndex < k; cIndex++) {
+        const distance = Math.abs(salaryVal - centroids[cIndex]);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestCentroidIndex = cIndex;
         }
       }
 
-      clustersTHONGPHUM[closestCentroidIndexTHONGPHUM].push(salaryValTHONGPHUM);
+      clusters[closestCentroidIndex].push(salaryVal);
     }
 
     // Recompute centroids
-    let hasConvergedTHONGPHUM = true;
-    const newCentroidsTHONGPHUM = [...centroidsTHONGPHUM];
+    let hasConverged = true;
+    const newCentroids = [...centroids];
 
-    for (let cIndexTHONGPHUM = 0; cIndexTHONGPHUM < kTHONGPHUM; cIndexTHONGPHUM++) {
-      const clusterItemsTHONGPHUM = clustersTHONGPHUM[cIndexTHONGPHUM];
-      if (clusterItemsTHONGPHUM.length > 0) {
-        const sumTHONGPHUM = clusterItemsTHONGPHUM.reduce((accTHONGPHUM, valTHONGPHUM) => accTHONGPHUM + valTHONGPHUM, 0);
-        const meanTHONGPHUM = sumTHONGPHUM / clusterItemsTHONGPHUM.length;
-        if (Math.abs(meanTHONGPHUM - centroidsTHONGPHUM[cIndexTHONGPHUM]) > 0.001) {
-          hasConvergedTHONGPHUM = false;
+    for (let cIndex = 0; cIndex < k; cIndex++) {
+      const clusterItems = clusters[cIndex];
+      if (clusterItems.length > 0) {
+        const sum = clusterItems.reduce((acc, val) => acc + val, 0);
+        const mean = sum / clusterItems.length;
+        if (Math.abs(mean - centroids[cIndex]) > 0.001) {
+          hasConverged = false;
         }
-        newCentroidsTHONGPHUM[cIndexTHONGPHUM] = meanTHONGPHUM;
+        newCentroids[cIndex] = mean;
       }
     }
 
-    centroidsTHONGPHUM = newCentroidsTHONGPHUM;
+    centroids = newCentroids;
 
-    if (hasConvergedTHONGPHUM) {
+    if (hasConverged) {
       break;
     }
   }
 
-  // Final assignment with the converged centroids
-  const finalAssignmentsTHONGPHUM = [[], [], []];
-  for (let iTHONGPHUM = 0; iTHONGPHUM < sortedValuesTHONGPHUM.length; iTHONGPHUM++) {
-    const salaryValTHONGPHUM = sortedValuesTHONGPHUM[iTHONGPHUM];
-    let closestIndexTHONGPHUM = 0;
-    let minDiffTHONGPHUM = Math.abs(salaryValTHONGPHUM - centroidsTHONGPHUM[0]);
+  // Final assignment with converged centroids
+  const finalAssignments = [[], [], []];
+  for (let i = 0; i < sortedValues.length; i++) {
+    const salaryVal = sortedValues[i];
+    let closestIndex = 0;
+    let minDiff = Math.abs(salaryVal - centroids[0]);
 
-    for (let cIndexTHONGPHUM = 1; cIndexTHONGPHUM < kTHONGPHUM; cIndexTHONGPHUM++) {
-      const diffTHONGPHUM = Math.abs(salaryValTHONGPHUM - centroidsTHONGPHUM[cIndexTHONGPHUM]);
-      if (diffTHONGPHUM < minDiffTHONGPHUM) {
-        minDiffTHONGPHUM = diffTHONGPHUM;
-        closestIndexTHONGPHUM = cIndexTHONGPHUM;
+    for (let cIndex = 1; cIndex < k; cIndex++) {
+      const diff = Math.abs(salaryVal - centroids[cIndex]);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = cIndex;
       }
     }
 
-    finalAssignmentsTHONGPHUM[closestIndexTHONGPHUM].push(salaryValTHONGPHUM);
+    finalAssignments[closestIndex].push(salaryVal);
   }
 
   // Calculate actual centroid and count for each cluster
-  const clusterResultsTHONGPHUM = finalAssignmentsTHONGPHUM.map((itemsTHONGPHUM, idxTHONGPHUM) => {
-    if (itemsTHONGPHUM.length > 0) {
-      const sumTHONGPHUM = itemsTHONGPHUM.reduce((accTHONGPHUM, valTHONGPHUM) => accTHONGPHUM + valTHONGPHUM, 0);
+  const clusterResults = finalAssignments.map((items, idx) => {
+    if (items.length > 0) {
+      const sum = items.reduce((acc, val) => acc + val, 0);
       return {
-        centroid: Math.round(sumTHONGPHUM / itemsTHONGPHUM.length),
-        count: itemsTHONGPHUM.length,
+        centroid: Math.round(sum / items.length),
+        count: items.length,
       };
     }
     return {
-      centroid: Math.round(centroidsTHONGPHUM[idxTHONGPHUM]),
+      centroid: Math.round(centroids[idx]),
       count: 0,
     };
   });
 
   // Sort by centroid ascending (Tier 1 = lowest avg salary, Tier 3 = highest)
-  clusterResultsTHONGPHUM.sort((aTHONGPHUM, bTHONGPHUM) => aTHONGPHUM.centroid - bTHONGPHUM.centroid);
+  clusterResults.sort((a, b) => a.centroid - b.centroid);
 
   // Map to Tier 1, Tier 2, Tier 3
-  return clusterResultsTHONGPHUM.map((itemTHONGPHUM, indexTHONGPHUM) => ({
-    group: `Tier ${indexTHONGPHUM + 1}`,
-    centroid: itemTHONGPHUM.centroid,
-    count: itemTHONGPHUM.count,
+  return clusterResults.map((item, index) => ({
+    group: `Tier ${index + 1}`,
+    centroid: item.centroid,
+    count: item.count,
   }));
 };
 
 module.exports = {
-  calculateKMeans1DTHONGPHUM,
+  calculateKMeans1D,
 };
