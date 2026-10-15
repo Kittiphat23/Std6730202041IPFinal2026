@@ -170,10 +170,12 @@ app.post('/api/employees', async (req, res) => {
   // Add to primary In-memory storage
   employeesMemory.push(newEmployee);
 
-  // Sync to database if connected
-  insertEmployeeToDb(newEmployee).catch((err) => {
-    console.warn('[MySQL Sync Error]', err.message);
-  });
+  // Sync to database (both local MySQL and remote phpMyAdmin)
+  try {
+    await insertEmployeeToDb(newEmployee);
+  } catch (err) {
+    console.warn('[DB Sync Error]', err.message);
+  }
 
   return res.status(201).json({
     success: true,
@@ -201,10 +203,12 @@ app.put('/api/employees/:id/status', async (req, res) => {
 
   employeesMemory[employeeIndex].status = toggledStatus;
 
-  // Sync to database if connected
-  updateEmployeeStatusInDb(employeeId, toggledStatus).catch((err) => {
-    console.warn('[MySQL Sync Error]', err.message);
-  });
+  // Sync to database (both local MySQL and remote phpMyAdmin)
+  try {
+    await updateEmployeeStatusInDb(employeeId, toggledStatus);
+  } catch (err) {
+    console.warn('[DB Sync Error]', err.message);
+  }
 
   return res.status(200).json({
     success: true,
@@ -229,10 +233,12 @@ app.delete('/api/employees/:id', async (req, res) => {
 
   const removedEmployee = employeesMemory.splice(employeeIndex, 1)[0];
 
-  // Sync to database if connected
-  deleteEmployeeFromDb(employeeId).catch((err) => {
-    console.warn('[MySQL Sync Error]', err.message);
-  });
+  // Sync to database (both local MySQL and remote phpMyAdmin)
+  try {
+    await deleteEmployeeFromDb(employeeId);
+  } catch (err) {
+    console.warn('[DB Sync Error]', err.message);
+  }
 
   return res.status(200).json({
     success: true,
