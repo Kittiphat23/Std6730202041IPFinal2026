@@ -238,6 +238,18 @@ export default function App() {
 
   // Gimmick 3: Confetti Celebration Trigger
   const [showConfetti, setShowConfetti] = useState(false);
+  // =========================================================================
+  // GIMMICK 6: BACKGROUND MUSIC ENGINE (IKSON - PARADISE)
+  // =========================================================================
+  const audioBgmRef = useRef(null);
+  const [isPlayingMusic, setIsPlayingMusic] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(0.45);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [isMusicPlayerExpanded, setIsMusicPlayerExpanded] = useState(false);
+  const [musicSourceMode, setMusicSourceMode] = useState('audio'); // 'audio' | 'youtube'
+  const [musicProgressPct, setMusicProgressPct] = useState(0);
+  const [musicCurrentSec, setMusicCurrentSec] = useState(0);
+  const [musicDurationSec, setMusicDurationSec] = useState(0);
 
   // Employee Detail Modal
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -265,6 +277,138 @@ export default function App() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Background Music Engine Lifecycle
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && typeof Audio !== 'undefined') {
+      const styleId = 'bgm-equalizer-animations';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+          @keyframes bounceEq1 { 0%, 100% { height: 4px; } 50% { height: 18px; } }
+          @keyframes bounceEq2 { 0%, 100% { height: 16px; } 50% { height: 6px; } }
+          @keyframes bounceEq3 { 0%, 100% { height: 8px; } 50% { height: 22px; } }
+          @keyframes bounceEq4 { 0%, 100% { height: 20px; } 50% { height: 6px; } }
+          @keyframes bounceEq5 { 0%, 100% { height: 6px; } 50% { height: 16px; } }
+          @keyframes bounceEq6 { 0%, 100% { height: 18px; } 50% { height: 8px; } }
+          @keyframes bounceEq7 { 0%, 100% { height: 10px; } 50% { height: 20px; } }
+          @keyframes bounceEq8 { 0%, 100% { height: 22px; } 50% { height: 5px; } }
+          .eq-anim-1 { animation: bounceEq1 0.7s ease-in-out infinite; }
+          .eq-anim-2 { animation: bounceEq2 0.6s ease-in-out infinite; }
+          .eq-anim-3 { animation: bounceEq3 0.8s ease-in-out infinite; }
+          .eq-anim-4 { animation: bounceEq4 0.5s ease-in-out infinite; }
+          .eq-anim-5 { animation: bounceEq5 0.75s ease-in-out infinite; }
+          .eq-anim-6 { animation: bounceEq6 0.65s ease-in-out infinite; }
+          .eq-anim-7 { animation: bounceEq7 0.85s ease-in-out infinite; }
+          .eq-anim-8 { animation: bounceEq8 0.55s ease-in-out infinite; }
+        `;
+        document.head.appendChild(style);
+      }
+
+      const audio = new Audio();
+      const primaryUrl = `${API_BASE_URL}/audio/paradise.webm`;
+      const fallbackUrl = `${API_BASE_URL}/audio/paradise.m4a`;
+      audio.src = primaryUrl;
+      audio.loop = true;
+      audio.volume = 0.45;
+      audio.preload = 'metadata';
+
+      audio.onerror = () => {
+        if (audio.src && audio.src.endsWith('.webm')) {
+          audio.src = fallbackUrl;
+          if (isPlayingMusic) audio.play().catch(() => {});
+        }
+      };
+
+      audio.ontimeupdate = () => {
+        if (audio.duration && !isNaN(audio.duration)) {
+          setMusicDurationSec(Math.floor(audio.duration));
+          setMusicCurrentSec(Math.floor(audio.currentTime));
+          setMusicProgressPct((audio.currentTime / audio.duration) * 100);
+        }
+      };
+
+      audioBgmRef.current = audio;
+
+      return () => {
+        audio.pause();
+        audio.src = '';
+      };
+    }
+  }, []);
+
+  const togglePlayMusic = () => {
+    if (musicSourceMode === 'youtube') {
+      setIsMusicPlayerExpanded(true);
+      return;
+    }
+    const audio = audioBgmRef.current;
+    if (!audio) {
+      setIsMusicPlayerExpanded(true);
+      return;
+    }
+
+    if (isPlayingMusic) {
+      audio.pause();
+      setIsPlayingMusic(false);
+      showToast('⏸️ พักการเล่นเพลง BGM', 'info');
+    } else {
+      audio.play()
+        .then(() => {
+          setIsPlayingMusic(true);
+          showToast('🎵 กำลังเล่นเพลง: Ikson - Paradise', 'success');
+        })
+        .catch((err) => {
+          console.warn('Playback error or blocked by policy:', err);
+          setIsMusicPlayerExpanded(true);
+          setIsPlayingMusic(true);
+        });
+    }
+  };
+
+  const changeMusicVolume = (vol) => {
+    const clamped = Math.max(0, Math.min(1, vol));
+    setMusicVolume(clamped);
+    if (audioBgmRef.current) {
+      audioBgmRef.current.volume = clamped;
+      if (clamped > 0 && isMusicMuted) {
+        audioBgmRef.current.muted = false;
+        setIsMusicMuted(false);
+      }
+    }
+  };
+
+  const toggleMusicMute = () => {
+    const nextMuted = !isMusicMuted;
+    setIsMusicMuted(nextMuted);
+    if (audioBgmRef.current) {
+      audioBgmRef.current.muted = nextMuted;
+    }
+  };
+
+  const seekMusic = (e) => {
+    const audio = audioBgmRef.current;
+    if (!audio || !audio.duration) return;
+    const clickX = e.nativeEvent?.locationX || 0;
+    const totalWidth = 280;
+    const pct = Math.max(0, Math.min(1, clickX / totalWidth));
+    audio.currentTime = pct * audio.duration;
+    setMusicCurrentSec(Math.floor(audio.currentTime));
+    setMusicProgressPct(pct * 100);
+  };
+
+  const skipMusic = (deltaSec) => {
+    const audio = audioBgmRef.current;
+    if (!audio || !audio.duration) return;
+    audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + deltaSec));
+  };
+
+  const formatSec = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
   const triggerSound = (type = 'click') => {
     if (soundEnabled) playSoundFX(type);
@@ -637,6 +781,243 @@ export default function App() {
     addAuditLog('EXPORT_CSV', `Exported ${employees.length} records to CSV`, 'info');
   };
 
+  // =========================================================================
+  // GIMMICK 6: FLOATING BACKGROUND MUSIC PLAYER RENDERER
+  // =========================================================================
+  const renderMusicPlayer = () => (
+    <View style={styles.floatingBgmDockContainer} pointerEvents="box-none">
+      {isMusicPlayerExpanded ? (
+        <View style={[styles.bgmExpandedCard, { backgroundColor: t.cardBg, borderColor: t.borderHighlight }]}>
+          {/* Top Banner with Tropical Sunset Theme */}
+          <View style={[styles.bgmBannerHeader, { backgroundColor: t.innerCardBg }]}>
+            <View style={styles.bgmBannerTitleGroup}>
+              <Text style={styles.bgmBannerEmoji}>🌴</Text>
+              <View>
+                <View style={styles.bgmTitleBadgeRow}>
+                  <Text style={[styles.bgmBannerTrackName, { color: t.textMain }]}>Ikson - Paradise</Text>
+                  <View style={[styles.bgmStatusPill, { backgroundColor: isPlayingMusic ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.2)' }]}>
+                    <View style={[styles.bgmStatusDot, { backgroundColor: isPlayingMusic ? '#10B981' : '#94A3B8' }]} />
+                    <Text style={[styles.bgmStatusPillText, { color: isPlayingMusic ? '#10B981' : '#94A3B8' }]}>
+                      {isPlayingMusic ? 'PLAYING' : 'PAUSED'}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={[styles.bgmBannerArtist, { color: t.textSub }]}>
+                  Vlog No Copyright Music • Official Exam BGM
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.bgmCloseBtn}
+              onPress={() => setIsMusicPlayerExpanded(false)}
+            >
+              <Text style={[styles.bgmCloseBtnText, { color: t.textMuted }]}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Mode Selector (HQ Audio Stream vs YouTube Video) */}
+          <View style={[styles.bgmModeTabsRow, { backgroundColor: t.innerCardBg, borderColor: t.border }]}>
+            <TouchableOpacity
+              style={[styles.bgmModeTab, musicSourceMode === 'audio' && { backgroundColor: t.primary }]}
+              onPress={() => {
+                setMusicSourceMode('audio');
+                triggerSound('click');
+              }}
+            >
+              <Text style={[styles.bgmModeTabText, musicSourceMode === 'audio' ? { color: '#FFFFFF', fontWeight: '800' } : { color: t.textSub }]}>
+                ⚡ HQ Audio Stream
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.bgmModeTab, musicSourceMode === 'youtube' && { backgroundColor: t.primary }]}
+              onPress={() => {
+                setMusicSourceMode('youtube');
+                if (audioBgmRef.current) audioBgmRef.current.pause();
+                setIsPlayingMusic(false);
+                triggerSound('click');
+              }}
+            >
+              <Text style={[styles.bgmModeTabText, musicSourceMode === 'youtube' ? { color: '#FFFFFF', fontWeight: '800' } : { color: t.textSub }]}>
+                📺 YouTube Player
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Body: Audio Mode or YouTube Mode */}
+          {musicSourceMode === 'audio' ? (
+            <View style={styles.bgmAudioControlsBody}>
+              {/* Animated 8-Bar Waveform Equalizer */}
+              <View style={styles.bgmWaveformVisualizerRow}>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((barIdx) => (
+                  <View
+                    key={barIdx}
+                    style={[
+                      styles.bgmWaveBar,
+                      isPlayingMusic && { className: `eq-anim-${barIdx}` },
+                      {
+                        backgroundColor: barIdx % 2 === 0 ? t.primaryLight : t.accent,
+                        height: isPlayingMusic ? 14 : 4,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+
+              {/* Timeline Progress Bar */}
+              <View style={styles.bgmTimelineWrapper}>
+                <View style={styles.bgmTimeLabelsRow}>
+                  <Text style={[styles.bgmTimeLabelText, { color: t.textSub }]}>{formatSec(musicCurrentSec)}</Text>
+                  <Text style={[styles.bgmTimeLabelText, { color: t.textMuted }]}>{musicDurationSec ? formatSec(musicDurationSec) : '03:12'}</Text>
+                </View>
+                <TouchableOpacity
+                  style={[styles.bgmTimelineTrack, { backgroundColor: t.border }]}
+                  onPress={seekMusic}
+                  activeOpacity={0.9}
+                >
+                  <View
+                    style={[
+                      styles.bgmTimelineFill,
+                      {
+                        width: `${musicProgressPct}%`,
+                        backgroundColor: t.primary,
+                      },
+                    ]}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {/* Master Transport Controls */}
+              <View style={styles.bgmTransportRow}>
+                <TouchableOpacity
+                  style={[styles.bgmSecondaryTransportBtn, { backgroundColor: t.innerCardBg }]}
+                  onPress={() => skipMusic(-10)}
+                >
+                  <Text style={[styles.bgmSecondaryTransportText, { color: t.textSub }]}>⏪ -10s</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.bgmMainPlayBtn, { backgroundColor: t.primary, shadowColor: t.primary }]}
+                  onPress={togglePlayMusic}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.bgmMainPlayBtnText}>{isPlayingMusic ? '⏸️' : '▶️'}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.bgmSecondaryTransportBtn, { backgroundColor: t.innerCardBg }]}
+                  onPress={() => skipMusic(10)}
+                >
+                  <Text style={[styles.bgmSecondaryTransportText, { color: t.textSub }]}>+10s ⏩</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Volume Slider & Mute */}
+              <View style={styles.bgmVolumeRow}>
+                <TouchableOpacity onPress={toggleMusicMute} style={styles.bgmMuteIconBtn}>
+                  <Text style={styles.bgmVolumeIconText}>{isMusicMuted || musicVolume === 0 ? '🔇' : '🔊'}</Text>
+                </TouchableOpacity>
+                <View style={styles.bgmVolumeLevelsRow}>
+                  {[0.1, 0.25, 0.45, 0.7, 1.0].map((vLevel) => {
+                    const isActive = !isMusicMuted && musicVolume >= vLevel;
+                    return (
+                      <TouchableOpacity
+                        key={vLevel}
+                        style={[
+                          styles.bgmVolSegment,
+                          {
+                            backgroundColor: isActive ? t.accent : t.border,
+                          },
+                        ]}
+                        onPress={() => changeMusicVolume(vLevel)}
+                      />
+                    );
+                  })}
+                </View>
+                <Text style={[styles.bgmVolumePercentText, { color: t.textSub }]}>
+                  {isMusicMuted ? 'Muted' : `${Math.round(musicVolume * 100)}%`}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.bgmYouTubeBody}>
+              {Platform.OS === 'web' && (
+                <View style={styles.youtubeEmbedContainer}>
+                  {React.createElement('iframe', {
+                    src: 'https://www.youtube.com/embed/glMhD3EU46k?autoplay=1&loop=1&playlist=glMhD3EU46k',
+                    width: '100%',
+                    height: '190',
+                    frameBorder: '0',
+                    allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
+                    allowFullScreen: true,
+                    style: { borderRadius: 12, border: 'none', width: '100%', height: 190 },
+                  })}
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* External YouTube Playlist Link */}
+          <View style={styles.bgmFooterActionRow}>
+            <TouchableOpacity
+              style={[styles.bgmExternalPlaylistBtn, { borderColor: t.border, backgroundColor: t.innerCardBg }]}
+              onPress={() => {
+                if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                  window.open('https://www.youtube.com/watch?v=glMhD3EU46k&list=PLf1_JzcOaUmJGHkjJUhLbo9p--TMzZBwT', '_blank');
+                }
+              }}
+            >
+              <Text style={styles.bgmExternalPlaylistIcon}>▶️</Text>
+              <Text style={[styles.bgmExternalPlaylistText, { color: t.textMain }]}>
+                เปิดเพลย์ลิสต์ YouTube ต้นฉบับ ↗
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        /* Collapsed Mini Pill */
+        <TouchableOpacity
+          style={[
+            styles.bgmMiniPill,
+            {
+              backgroundColor: t.cardBg,
+              borderColor: isPlayingMusic ? t.borderHighlight : t.border,
+              shadowColor: t.primary,
+            },
+          ]}
+          onPress={() => setIsMusicPlayerExpanded(true)}
+          activeOpacity={0.85}
+        >
+          {/* Mini Equalizer Bars */}
+          <View style={styles.bgmMiniEqBarsRow}>
+            <View style={[styles.miniEqBar, isPlayingMusic && { className: 'eq-anim-1' }, { backgroundColor: t.accent, height: isPlayingMusic ? 14 : 5 }]} />
+            <View style={[styles.miniEqBar, isPlayingMusic && { className: 'eq-anim-2' }, { backgroundColor: t.primaryLight, height: isPlayingMusic ? 18 : 8 }]} />
+            <View style={[styles.miniEqBar, isPlayingMusic && { className: 'eq-anim-3' }, { backgroundColor: t.primary, height: isPlayingMusic ? 12 : 6 }]} />
+            <View style={[styles.miniEqBar, isPlayingMusic && { className: 'eq-anim-4' }, { backgroundColor: t.accent, height: isPlayingMusic ? 16 : 4 }]} />
+          </View>
+
+          <Text style={styles.bgmMiniTrackEmoji}>🌴</Text>
+          <View style={styles.bgmMiniTextGroup}>
+            <Text style={[styles.bgmMiniTrackTitle, { color: t.textMain }]}>Ikson - Paradise</Text>
+            <Text style={[styles.bgmMiniTrackStatus, { color: isPlayingMusic ? '#10B981' : t.textMuted }]}>
+              {isPlayingMusic ? 'กำลังเล่น BGM • แตะเพื่อเปิดแผงควบคุม' : 'แตะเพื่อเปิดเพลง BGM'}
+            </Text>
+          </View>
+
+          {/* Quick Play/Pause Action Button on Pill */}
+          <TouchableOpacity
+            style={[styles.bgmMiniQuickToggleBtn, { backgroundColor: isPlayingMusic ? t.primary : t.innerCardBg }]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              togglePlayMusic();
+            }}
+          >
+            <Text style={styles.bgmMiniQuickToggleText}>{isPlayingMusic ? '⏸️' : '▶️'}</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
   // =========================================================
   // VIEW 1: DESIGNER LOGIN SCREEN
   // =========================================================
@@ -759,6 +1140,8 @@ export default function App() {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+        {/* Floating Background Music Player */}
+        {renderMusicPlayer()}
       </SafeAreaView>
     );
   }
@@ -897,6 +1280,26 @@ export default function App() {
               <Text style={styles.clockIcon}>⏱️</Text>
               <Text style={[styles.clockText, { color: t.accent }]}>{currentTime}</Text>
             </View>
+
+            {/* Background Music Quick Button */}
+            <TouchableOpacity
+              style={[
+                styles.musicQuickBtn,
+                {
+                  backgroundColor: isPlayingMusic ? 'rgba(99, 102, 241, 0.2)' : t.innerCardBg,
+                  borderColor: isPlayingMusic ? t.primaryLight : t.border,
+                },
+              ]}
+              onPress={() => {
+                triggerSound('click');
+                togglePlayMusic();
+              }}
+            >
+              <Text style={styles.musicQuickIcon}>{isPlayingMusic ? '🎵' : '🎼'}</Text>
+              <Text style={[styles.musicQuickText, { color: isPlayingMusic ? t.textMain : t.textSub }]}>
+                {isPlayingMusic ? 'BGM ON' : 'Play Music'}
+              </Text>
+            </TouchableOpacity>
 
             {/* Audio Feedback Toggle */}
             <TouchableOpacity
@@ -1706,6 +2109,8 @@ export default function App() {
           </Text>
         </View>
       </ScrollView>
+      {/* Floating Background Music Player */}
+      {renderMusicPlayer()}
     </SafeAreaView>
   );
 }
@@ -2962,5 +3367,289 @@ const styles = StyleSheet.create({
   },
   disabledOpacity: {
     opacity: 0.6,
+  },
+
+  // -------------------------------------------------------
+  // GIMMICK 6: BACKGROUND MUSIC PLAYER STYLES
+  // -------------------------------------------------------
+  floatingBgmDockContainer: {
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 9999,
+  },
+  bgmMiniPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+  },
+  bgmMiniEqBarsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 3,
+    height: 18,
+    width: 22,
+  },
+  miniEqBar: {
+    width: 3.5,
+    borderRadius: 2,
+  },
+  bgmMiniTrackEmoji: {
+    fontSize: 16,
+  },
+  bgmMiniTextGroup: {
+    maxWidth: 180,
+  },
+  bgmMiniTrackTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  bgmMiniTrackStatus: {
+    fontSize: 10,
+  },
+  bgmMiniQuickToggleBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
+  bgmMiniQuickToggleText: {
+    fontSize: 12,
+  },
+
+  // Expanded Card
+  bgmExpandedCard: {
+    width: 360,
+    maxWidth: '92vw',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.45,
+    shadowRadius: 28,
+  },
+  bgmBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  bgmBannerTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  bgmBannerEmoji: {
+    fontSize: 26,
+  },
+  bgmTitleBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bgmBannerTrackName: {
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  bgmStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  bgmStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  bgmStatusPillText: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  bgmBannerArtist: {
+    fontSize: 11,
+    marginTop: 2,
+  },
+  bgmCloseBtn: {
+    padding: 6,
+  },
+  bgmCloseBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  bgmModeTabsRow: {
+    flexDirection: 'row',
+    padding: 6,
+    marginHorizontal: 14,
+    marginTop: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 6,
+  },
+  bgmModeTab: {
+    flex: 1,
+    paddingVertical: 7,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  bgmModeTabText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  bgmAudioControlsBody: {
+    padding: 16,
+  },
+  bgmWaveformVisualizerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    gap: 6,
+    height: 28,
+    marginBottom: 14,
+  },
+  bgmWaveBar: {
+    width: 6,
+    borderRadius: 3,
+  },
+  bgmTimelineWrapper: {
+    marginBottom: 14,
+  },
+  bgmTimeLabelsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  bgmTimeLabelText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  bgmTimelineTrack: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  bgmTimelineFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  bgmTransportRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+    marginBottom: 14,
+  },
+  bgmSecondaryTransportBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  bgmSecondaryTransportText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  bgmMainPlayBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+  },
+  bgmMainPlayBtnText: {
+    fontSize: 20,
+  },
+  bgmVolumeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  bgmMuteIconBtn: {
+    padding: 4,
+  },
+  bgmVolumeIconText: {
+    fontSize: 14,
+  },
+  bgmVolumeLevelsRow: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+  },
+  bgmVolSegment: {
+    width: 14,
+    height: 10,
+    borderRadius: 2,
+  },
+  bgmVolumePercentText: {
+    fontSize: 11,
+    fontWeight: '700',
+    minWidth: 40,
+    textAlign: 'right',
+  },
+  bgmYouTubeBody: {
+    padding: 14,
+  },
+  youtubeEmbedContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  bgmFooterActionRow: {
+    padding: 12,
+    paddingTop: 0,
+  },
+  bgmExternalPlaylistBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  bgmExternalPlaylistIcon: {
+    fontSize: 13,
+  },
+  bgmExternalPlaylistText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+
+  // Nav Quick Button
+  musicQuickBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  musicQuickIcon: {
+    fontSize: 13,
+  },
+  musicQuickText: {
+    fontSize: 11,
+    fontWeight: '800',
   },
 });

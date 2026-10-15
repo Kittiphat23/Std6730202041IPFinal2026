@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { calculateKMeans1D } = require('./kmeans');
 const {
   testDbConnection,
@@ -16,6 +17,7 @@ const port = process.env.PORT || 5000;
 // Enable CORS and JSON body parser
 app.use(cors());
 app.use(express.json());
+app.use('/audio', express.static(path.join(__dirname, '../frontend/assets/audio')));
 
 // Initial In-Memory Array (At least 5 mock employees as strictly required by exam)
 const defaultEmployees = [
