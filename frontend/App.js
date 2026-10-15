@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -16,7 +16,7 @@ import {
 import { API_BASE_URL } from './config';
 
 // =========================================================================
-// AWARD-WINNING DESIGNER THEME PRESETS
+// DESIGNER THEME PRESETS
 // =========================================================================
 const THEMES = {
   midnight: {
@@ -137,10 +137,67 @@ const POSITION_RECOMMENDATIONS = [
   { role: 'Product Designer', dept: 'Design UX', avgSalary: 52000 },
 ];
 
+// =========================================================================
+// PROCEDURAL SYNTHESIZED SOUND EFFECTS (WEB AUDIO API)
+// =========================================================================
+const playSoundFX = (type = 'click') => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+
+    if (type === 'click') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } else if (type === 'success') {
+      const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6 chord
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.06);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime + idx * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.06 + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.06);
+        osc.stop(ctx.currentTime + idx * 0.06 + 0.25);
+      });
+    } else if (type === 'delete') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(350, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.12);
+    }
+  } catch (e) {
+    // Audio context may be restricted before user gesture
+  }
+};
+
 export default function App() {
   // Theme State
   const [currentThemeKey, setCurrentThemeKey] = useState('midnight');
   const t = THEMES[currentThemeKey];
+
+  // Sound FX State
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   // Authentication States
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -149,7 +206,7 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState('password123');
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // Active Navigation Tab ('overview' | 'directory' | 'analytics' | 'onboard' | 'audit')
+  // Active Navigation Tab ('overview' | 'directory' | 'analytics' | 'simulator' | 'onboard' | 'audit')
   const [activeTab, setActiveTab] = useState('overview');
 
   // Employee CRUD States
@@ -173,6 +230,15 @@ export default function App() {
   const [clustersData, setClustersData] = useState(null);
   const [lastAnalyzedTime, setLastAnalyzedTime] = useState(null);
 
+  // Gimmick 1: Live What-If Salary Tier Predictor Simulator
+  const [simulatedSalary, setSimulatedSalary] = useState('50000');
+
+  // Gimmick 2: Live Digital Clock
+  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+
+  // Gimmick 3: Confetti Celebration Trigger
+  const [showConfetti, setShowConfetti] = useState(false);
+
   // Employee Detail Modal
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -185,12 +251,24 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState([
     {
       id: 'log-1',
-      action: 'SYSTEM_READY',
-      detail: 'HR Intelligence Suite booted successfully',
+      action: 'SYSTEM_BOOT',
+      detail: 'HR Intelligence Suite initialized with Live Database',
       timestamp: new Date().toLocaleTimeString(),
       type: 'system',
     },
   ]);
+
+  // Clock Ticker Effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const triggerSound = (type = 'click') => {
+    if (soundEnabled) playSoundFX(type);
+  };
 
   const addAuditLog = (action, detail, type = 'info') => {
     setAuditLogs((prev) => [
@@ -213,6 +291,13 @@ export default function App() {
     }, 3600);
   };
 
+  const triggerCelebration = () => {
+    setShowConfetti(true);
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 2800);
+  };
+
   const showNotification = (title, message) => {
     if (Platform.OS === 'web') {
       window.alert(`${title}: ${message}`);
@@ -225,6 +310,7 @@ export default function App() {
   // Authentication Handlers
   // ---------------------------------------------------------
   const handleLogin = async () => {
+    triggerSound('click');
     if (!usernameInput.trim() || !passwordInput.trim()) {
       showNotification('Login Failed', 'Please enter both username and password.');
       return;
@@ -248,6 +334,8 @@ export default function App() {
       if (response.status === 200 && data.success) {
         setAuthToken(data.token);
         setIsLoggedIn(true);
+        triggerSound('success');
+        triggerCelebration();
         addAuditLog('USER_LOGIN', `Admin access granted via /api/login`, 'success');
         showToast('เข้าสู่ระบบสำเร็จ ยินดีต้อนรับสู่ระบบบริหาร HR', 'success');
         fetchEmployees();
@@ -263,6 +351,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    triggerSound('click');
     addAuditLog('USER_LOGOUT', `Admin session terminated`, 'info');
     setIsLoggedIn(false);
     setAuthToken('');
@@ -292,6 +381,7 @@ export default function App() {
   };
 
   const handleAddEmployee = async () => {
+    triggerSound('click');
     setFormError('');
 
     if (!nameInput.trim() || !positionInput.trim() || !salaryInput.trim()) {
@@ -328,6 +418,8 @@ export default function App() {
         setPositionInput('');
         setSalaryInput('');
         setFormError('');
+        triggerSound('success');
+        triggerCelebration();
         addAuditLog('ADD_EMPLOYEE', `Created record for ${data.employee.name} (฿${numericSalary.toLocaleString()})`, 'success');
         showToast(`บันทึกข้อมูล ${data.employee.name} สำเร็จ!`, 'success');
         fetchEmployees();
@@ -345,6 +437,7 @@ export default function App() {
   };
 
   const handleToggleStatus = async (employeeId) => {
+    triggerSound('click');
     try {
       const response = await fetch(`${API_BASE_URL}/api/employees/${employeeId}/status`, {
         method: 'PUT',
@@ -356,6 +449,7 @@ export default function App() {
             String(emp.id) === String(employeeId) ? data.employee : emp
           )
         );
+        triggerSound('success');
         addAuditLog('TOGGLE_STATUS', `Toggled ${data.employee.name} to [${data.employee.status}]`, 'info');
         showToast(`เปลี่ยนสถานะของ ${data.employee.name} เป็น ${data.employee.status}`, 'info');
         if (selectedEmployee && String(selectedEmployee.id) === String(employeeId)) {
@@ -376,6 +470,7 @@ export default function App() {
       });
       const data = await response.json();
       if (response.status === 200 && data.success) {
+        triggerSound('delete');
         const deletedName = data.deletedEmployee?.name || `ID #${employeeId}`;
         setEmployees((prevList) =>
           prevList.filter((emp) => String(emp.id) !== String(employeeId))
@@ -395,6 +490,7 @@ export default function App() {
   };
 
   const confirmDeleteEmployee = (employee) => {
+    triggerSound('click');
     const messagePrompt = `คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูล "${employee.name}" ออกจากระบบ? การกระทำนี้ไม่สามารถย้อนกลับได้`;
 
     if (Platform.OS === 'web') {
@@ -423,6 +519,7 @@ export default function App() {
   // K-Means Salary Analytics (Phase 2)
   // ---------------------------------------------------------
   const handleAnalyzeSalary = async () => {
+    triggerSound('click');
     try {
       setClusteringLoading(true);
       const response = await fetch(`${API_BASE_URL}/api/employees/salary-clusters`);
@@ -431,6 +528,8 @@ export default function App() {
       if (response.status === 200 && data.success) {
         setClustersData(data.clusters);
         setLastAnalyzedTime(new Date().toLocaleTimeString());
+        triggerSound('success');
+        triggerCelebration();
         addAuditLog('KMEANS_CLUSTER', `Calculated 3 Tiers Centroids successfully`, 'success');
         showToast('การประมวลผล K-Means Salary Clustering สำเร็จแล้ว!', 'success');
       } else {
@@ -442,6 +541,28 @@ export default function App() {
       setClusteringLoading(false);
     }
   };
+
+  // ---------------------------------------------------------
+  // Gimmick: Predicted Tier for Simulator
+  // ---------------------------------------------------------
+  const predictedTier = useMemo(() => {
+    if (!clustersData || clustersData.length < 3) return null;
+    const salaryVal = Number(simulatedSalary);
+    if (Number.isNaN(salaryVal) || salaryVal <= 0) return null;
+
+    let closestTier = clustersData[0];
+    let minDiff = Math.abs(salaryVal - clustersData[0].centroid);
+
+    for (let i = 1; i < clustersData.length; i++) {
+      const diff = Math.abs(salaryVal - clustersData[i].centroid);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestTier = clustersData[i];
+      }
+    }
+
+    return closestTier;
+  }, [clustersData, simulatedSalary]);
 
   // ---------------------------------------------------------
   // Metrics & Calculations
@@ -492,8 +613,8 @@ export default function App() {
     return name.slice(0, 2).toUpperCase();
   };
 
-  // Mock Export CSV
   const handleExportCSV = () => {
+    triggerSound('click');
     const csvContent = [
       'ID,Name,Position,Status,Salary',
       ...employees.map((e) => `"${e.id}","${e.name}","${e.position}","${e.status}",${e.salary}`),
@@ -508,6 +629,7 @@ export default function App() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      triggerSound('success');
       showToast('ดาวน์โหลดไฟล์ CSV เรียบร้อยแล้ว!', 'success');
     } else {
       showToast('พร้อมส่งออกข้อมูล CSV ทั้งหมด', 'info');
@@ -544,7 +666,10 @@ export default function App() {
                         styles.themeIconPill,
                         isCurrent && { backgroundColor: t.primary, borderColor: t.primaryLight },
                       ]}
-                      onPress={() => setCurrentThemeKey(key)}
+                      onPress={() => {
+                        triggerSound('click');
+                        setCurrentThemeKey(key);
+                      }}
                     >
                       <Text style={styles.themeIconEmoji}>{th.icon}</Text>
                     </TouchableOpacity>
@@ -609,6 +734,7 @@ export default function App() {
             <TouchableOpacity
               style={[styles.demoCredentialsBox, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
               onPress={() => {
+                triggerSound('click');
                 setUsernameInput('admin');
                 setPasswordInput('password123');
                 showToast('กรอกรหัสทดสอบสำเร็จ (admin / password123)', 'info');
@@ -638,10 +764,30 @@ export default function App() {
   }
 
   // =========================================================
-  // VIEW 2: DESIGNER HR DASHBOARD
+  // VIEW 2: DESIGNER HR DASHBOARD WITH GIMMICKS
   // =========================================================
   return (
     <SafeAreaView style={[styles.appContainer, { backgroundColor: t.bg }]}>
+      {/* Gimmick: Floating Particle Celebration Shower */}
+      {showConfetti && (
+        <View style={styles.confettiOverlay} pointerEvents="none">
+          {['🎉', '✨', '💎', '🚀', '🌟', '💸', '⚡', '🎊'].map((emoji, i) => (
+            <Text
+              key={i}
+              style={[
+                styles.confettiEmoji,
+                {
+                  left: `${(i * 12) + 6}%`,
+                  top: `${(i % 3) * 15 + 10}%`,
+                },
+              ]}
+            >
+              {emoji}
+            </Text>
+          ))}
+        </View>
+      )}
+
       {/* Floating Toast Notification */}
       {toastMessage && (
         <View
@@ -713,7 +859,7 @@ export default function App() {
                   style={styles.modalDeleteBtn}
                   onPress={() => confirmDeleteEmployee(selectedEmployee)}
                 >
-                  <Text style={styles.modalDeleteBtnText}>🗑 Delete Employee</Text>
+                  <Text style={styles.modalDeleteBtnText}>🗑 Delete Employee Record</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -723,7 +869,7 @@ export default function App() {
 
       <ScrollView contentContainerStyle={styles.scrollCanvas}>
         {/* =================================================== */}
-        {/* TOPBAR WITH THEME SWITCHER                          */}
+        {/* TOPBAR: Clock, Audio FX, Themes & Profile           */}
         {/* =================================================== */}
         <View style={[styles.executiveNavbar, { backgroundColor: t.cardBg, borderColor: t.border }]}>
           <View style={styles.brandTitleArea}>
@@ -735,7 +881,7 @@ export default function App() {
                 <Text style={[styles.navMainText, { color: t.textMain }]}>HR Intelligence Suite</Text>
                 <View style={[styles.liveIndicatorPill, { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
                   <View style={styles.livePulseDot} />
-                  <Text style={styles.liveIndicatorText}>LIVE SYNC ACTIVE</Text>
+                  <Text style={styles.liveIndicatorText}>LIVE DB ACTIVE</Text>
                 </View>
               </View>
               <Text style={[styles.navSubText, { color: t.textSub }]}>
@@ -744,8 +890,28 @@ export default function App() {
             </View>
           </View>
 
-          {/* Theme Switcher Bar */}
+          {/* Gimmick Bar: Clock, Audio, Themes, Sign Out */}
           <View style={styles.navRightCluster}>
+            {/* Live Clock Gimmick */}
+            <View style={[styles.clockBadgePill, { backgroundColor: t.innerCardBg, borderColor: t.border }]}>
+              <Text style={styles.clockIcon}>⏱️</Text>
+              <Text style={[styles.clockText, { color: t.accent }]}>{currentTime}</Text>
+            </View>
+
+            {/* Audio Feedback Toggle */}
+            <TouchableOpacity
+              style={[styles.audioToggleBtn, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
+              onPress={() => {
+                const nextState = !soundEnabled;
+                setSoundEnabled(nextState);
+                if (nextState) playSoundFX('success');
+                showToast(`ระบบเสียง UI: ${nextState ? 'เปิด (ON) 🔊' : 'ปิด (OFF) 🔇'}`, 'info');
+              }}
+            >
+              <Text style={styles.audioToggleEmoji}>{soundEnabled ? '🔊' : '🔇'}</Text>
+            </TouchableOpacity>
+
+            {/* Theme Selector */}
             <View style={[styles.themeSelectorBar, { backgroundColor: t.innerCardBg, borderColor: t.border }]}>
               <Text style={[styles.themeLabelNotice, { color: t.textMuted }]}>THEME:</Text>
               {Object.keys(THEMES).map((key) => {
@@ -759,8 +925,9 @@ export default function App() {
                       isSelected && { backgroundColor: t.primary, borderColor: t.primaryLight },
                     ]}
                     onPress={() => {
+                      triggerSound('click');
                       setCurrentThemeKey(key);
-                      showToast(`เปลี่ยนธีมเป็น "${item.name}" เรียบร้อยแล้ว`, 'info');
+                      showToast(`เปลี่ยนธีมเป็น "${item.name}"`, 'info');
                     }}
                   >
                     <Text style={styles.themeTabIcon}>{item.icon}</Text>
@@ -779,12 +946,83 @@ export default function App() {
         </View>
 
         {/* =================================================== */}
+        {/* GIMMICK: INTERACTIVE SALARY SPECTRUM HISTOGRAM      */}
+        {/* =================================================== */}
+        {employees.length > 0 && (
+          <View style={[styles.salarySpectrumCard, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+            <View style={styles.spectrumHeaderRow}>
+              <View>
+                <Text style={[styles.spectrumTitle, { color: t.textMain }]}>📈 Live Salary Distribution Spectrum</Text>
+                <Text style={[styles.spectrumSub, { color: t.textSub }]}>
+                  การกระจายตัวของเงินเดือนพนักงานเทียบกับเกณฑ์เฉลี่ย ฿{stats.avg.toLocaleString()} (แตะที่แท่งเพื่อดูรายละเอียด)
+                </Text>
+              </View>
+              <View style={styles.spectrumLegendRow}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#06B6D4' }]} />
+                  <Text style={[styles.legendLabel, { color: t.textMuted }]}>Tier 1</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#818CF8' }]} />
+                  <Text style={[styles.legendLabel, { color: t.textMuted }]}>Tier 2</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#FBBF24' }]} />
+                  <Text style={[styles.legendLabel, { color: t.textMuted }]}>Tier 3</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Bar Charts Spectrum */}
+            <View style={styles.spectrumBarsContainer}>
+              {employees.map((emp) => {
+                const maxSalary = Math.max(stats.max, 100000);
+                const barHeightPercent = Math.max(15, Math.round((Number(emp.salary) / maxSalary) * 100));
+
+                let barColor = '#06B6D4';
+                if (Number(emp.salary) > 60000) barColor = '#FBBF24';
+                else if (Number(emp.salary) > 35000) barColor = '#818CF8';
+
+                return (
+                  <TouchableOpacity
+                    key={emp.id}
+                    style={styles.spectrumBarColumn}
+                    onPress={() => {
+                      triggerSound('click');
+                      setSelectedEmployee(emp);
+                      setShowDetailModal(true);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.spectrumBarTrack}>
+                      <View
+                        style={[
+                          styles.spectrumBarFill,
+                          { height: `${barHeightPercent}%`, backgroundColor: barColor },
+                        ]}
+                      />
+                    </View>
+                    <Text style={[styles.spectrumEmpName, { color: t.textMuted }]} numberOfLines={1}>
+                      {emp.name.split(' ')[0]}
+                    </Text>
+                    <Text style={[styles.spectrumEmpSalary, { color: t.textSub }]}>
+                      {(Number(emp.salary) / 1000).toFixed(0)}k
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* =================================================== */}
         {/* NAVIGATION TABS BAR                                 */}
         {/* =================================================== */}
         <View style={styles.tabNavRow}>
           {[
             { key: 'overview', label: '📊 Executive Overview', count: totalEmployees },
             { key: 'analytics', label: '🧠 Salary K-Means Lab', count: 'Phase 2' },
+            { key: 'simulator', label: '🔮 Tier Predictor Lab', count: 'Interactive' },
             { key: 'directory', label: '👥 Employee Directory', count: filteredEmployees.length },
             { key: 'onboard', label: '➕ Onboard Staff', count: 'Phase 1' },
             { key: 'audit', label: '📜 Activity Audit Log', count: auditLogs.length },
@@ -798,7 +1036,10 @@ export default function App() {
                   { backgroundColor: t.cardBg, borderColor: t.border },
                   isSelected && { backgroundColor: t.innerCardBg, borderColor: t.primary, borderWidth: 2 },
                 ]}
-                onPress={() => setActiveTab(tab.key)}
+                onPress={() => {
+                  triggerSound('click');
+                  setActiveTab(tab.key);
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.tabNavLabel, { color: isSelected ? t.primaryLight : t.textSub }, isSelected && { fontWeight: '900' }]}>
@@ -811,6 +1052,80 @@ export default function App() {
             );
           })}
         </View>
+
+        {/* =================================================== */}
+        {/* GIMMICK: WHAT-IF SALARY TIER SIMULATOR TAB          */}
+        {/* =================================================== */}
+        {activeTab === 'simulator' && (
+          <View style={styles.sectionWrap}>
+            <View style={[styles.designerSectionCard, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+              <View style={styles.sectionCardHeader}>
+                <View>
+                  <View style={styles.headerTagRow}>
+                    <View style={[styles.algoBadge, { backgroundColor: '#7C3AED' }]}>
+                      <Text style={styles.algoBadgeText}>🔮 INTERACTIVE AI SIMULATOR</Text>
+                    </View>
+                    <Text style={[styles.examReqBadge, { color: t.textMuted }]}>K-MEANS PREDICTOR</Text>
+                  </View>
+                  <Text style={[styles.sectionTitleText, { color: t.textMain }]}>What-If Salary Tier Classifier</Text>
+                  <Text style={[styles.sectionSubtitleText, { color: t.textSub }]}>
+                    ทดลองกรอกเงินเดือนสมมติ เพื่อให้ AI จำแนกว่าจะถูกจัดเข้า Tier ใดตาม Centroids ปัจจุบัน
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.simulatorContentRow}>
+                <View style={styles.simulatorInputCol}>
+                  <Text style={[styles.formInputLabel, { color: t.textSub }]}>ENTER PROPOSED SALARY (THB):</Text>
+                  <TextInput
+                    style={[styles.formInputBox, { backgroundColor: t.innerCardBg, borderColor: t.border, color: t.textMain, fontSize: 20, fontWeight: '900' }]}
+                    placeholder="e.g. 55000"
+                    placeholderTextColor={t.textMuted}
+                    keyboardType="numeric"
+                    value={simulatedSalary}
+                    onChangeText={setSimulatedSalary}
+                  />
+
+                  {/* Quick Preset Buttons */}
+                  <View style={styles.simPresetsRow}>
+                    {[20000, 35000, 50000, 75000, 95000, 120000].map((val) => (
+                      <TouchableOpacity
+                        key={val}
+                        style={[styles.simPresetPill, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
+                        onPress={() => {
+                          triggerSound('click');
+                          setSimulatedSalary(String(val));
+                        }}
+                      >
+                        <Text style={[styles.simPresetPillText, { color: t.primaryLight }]}>฿{val.toLocaleString()}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Prediction Result Display */}
+                <View style={[styles.predictionBox, { backgroundColor: t.innerCardBg, borderColor: t.border }]}>
+                  <Text style={[styles.predSubLabel, { color: t.textMuted }]}>PREDICTED SALARY TIER:</Text>
+                  {predictedTier ? (
+                    <View style={styles.predResultArea}>
+                      <Text style={[styles.predHeroTier, { color: t.primaryLight }]}>{predictedTier.group}</Text>
+                      <Text style={[styles.predCentroidRef, { color: t.textSub }]}>
+                        Centroid Benchmark: ฿{Number(predictedTier.centroid).toLocaleString()}
+                      </Text>
+                      <Text style={[styles.predDiffNotice, { color: t.accent }]}>
+                        Distance from center: ฿{Math.abs(Number(simulatedSalary) - predictedTier.centroid).toLocaleString()}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={[styles.predHint, { color: t.textMuted }]}>
+                      กรุณากดวิเคราะห์ K-Means ก่อน หรือใส่ตัวเลขเงินเดือนที่ถูกต้อง
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* =================================================== */}
         {/* TAB: OVERVIEW & ANALYTICS                           */}
@@ -1090,7 +1405,10 @@ export default function App() {
                           { backgroundColor: t.innerCardBg, borderColor: t.border },
                           isTabActive && { backgroundColor: t.primaryDark, borderColor: t.primary },
                         ]}
-                        onPress={() => setStatusFilter(tab)}
+                        onPress={() => {
+                          triggerSound('click');
+                          setStatusFilter(tab);
+                        }}
                       >
                         <Text style={[styles.statusChipBtnText, { color: isTabActive ? '#FFFFFF' : t.textSub }]}>
                           {tab === 'ALL' ? 'ทั้งหมด (All)' : tab}
@@ -1116,7 +1434,10 @@ export default function App() {
                         { backgroundColor: t.innerCardBg, borderColor: t.border },
                         sortBy === s.id && { backgroundColor: t.primary, borderColor: t.primaryLight },
                       ]}
-                      onPress={() => setSortBy(s.id)}
+                      onPress={() => {
+                        triggerSound('click');
+                        setSortBy(s.id);
+                      }}
                     >
                       <Text style={[styles.sortSmallBtnText, { color: sortBy === s.id ? '#FFFFFF' : t.textSub }]}>
                         {s.label}
@@ -1151,6 +1472,7 @@ export default function App() {
                         <TouchableOpacity
                           style={styles.employeeInfoLeft}
                           onPress={() => {
+                            triggerSound('click');
                             setSelectedEmployee(emp);
                             setShowDetailModal(true);
                           }}
@@ -1291,6 +1613,7 @@ export default function App() {
                       key={item.role}
                       style={[styles.presetChipBtn, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
                       onPress={() => {
+                        triggerSound('click');
                         setPositionInput(item.role);
                         if (!salaryInput) setSalaryInput(String(item.avgSalary));
                         showToast(`เลือกตำแหน่ง ${item.role}`, 'info');
@@ -1334,7 +1657,10 @@ export default function App() {
 
                 <TouchableOpacity
                   style={[styles.utilBtn, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
-                  onPress={() => setAuditLogs([])}
+                  onPress={() => {
+                    triggerSound('click');
+                    setAuditLogs([]);
+                  }}
                 >
                   <Text style={[styles.utilBtnText, { color: t.textMuted }]}>Clear Logs</Text>
                 </TouchableOpacity>
@@ -1385,7 +1711,7 @@ export default function App() {
 }
 
 // =========================================================================
-// AWARD-WINNING DESIGNER STYLESHEET
+// AWARD-WINNING DESIGNER STYLESHEET WITH GIMMICKS
 // =========================================================================
 const styles = StyleSheet.create({
   appContainer: {
@@ -1396,6 +1722,202 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     width: '100%',
     alignSelf: 'center',
+  },
+
+  // -------------------------------------------------------
+  // CONFETTI CELEBRATION GIMMICK
+  // -------------------------------------------------------
+  confettiOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 99999,
+  },
+  confettiEmoji: {
+    position: 'absolute',
+    fontSize: 32,
+  },
+
+  // -------------------------------------------------------
+  // CLOCK & AUDIO TOGGLE GIMMICKS
+  // -------------------------------------------------------
+  clockBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  clockIcon: {
+    fontSize: 12,
+  },
+  clockText: {
+    fontSize: 12,
+    fontWeight: '900',
+    fontVariant: ['tabular-nums'],
+  },
+  audioToggleBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  audioToggleEmoji: {
+    fontSize: 14,
+  },
+
+  // -------------------------------------------------------
+  // SALARY SPECTRUM HISTOGRAM GIMMICK
+  // -------------------------------------------------------
+  salarySpectrumCard: {
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1.5,
+  },
+  spectrumHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  spectrumTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  spectrumSub: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  spectrumLegendRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  spectrumBarsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    height: 120,
+    gap: 8,
+    paddingTop: 10,
+    overflow: 'hidden',
+  },
+  spectrumBarColumn: {
+    flex: 1,
+    alignItems: 'center',
+    height: '100%',
+    justifyContent: 'flex-end',
+  },
+  spectrumBarTrack: {
+    width: '100%',
+    height: 80,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 6,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  spectrumBarFill: {
+    width: '100%',
+    borderRadius: 6,
+  },
+  spectrumEmpName: {
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 4,
+    maxWidth: 50,
+    textAlign: 'center',
+  },
+  spectrumEmpSalary: {
+    fontSize: 9,
+    fontWeight: '800',
+  },
+
+  // -------------------------------------------------------
+  // WHAT-IF PREDICTOR GIMMICK
+  // -------------------------------------------------------
+  simulatorContentRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 20,
+    marginTop: 16,
+  },
+  simulatorInputCol: {
+    flex: 1,
+    minWidth: 280,
+  },
+  simPresetsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  simPresetPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  simPresetPillText: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  predictionBox: {
+    flex: 1,
+    minWidth: 260,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  predSubLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  predResultArea: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  predHeroTier: {
+    fontSize: 32,
+    fontWeight: '900',
+  },
+  predCentroidRef: {
+    fontSize: 13,
+    marginTop: 4,
+    fontWeight: '700',
+  },
+  predDiffNotice: {
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 4,
+  },
+  predHint: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
   },
 
   // -------------------------------------------------------
@@ -1772,7 +2294,8 @@ const styles = StyleSheet.create({
   navRightCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    flexWrap: 'wrap',
   },
   themeSelectorBar: {
     flexDirection: 'row',
