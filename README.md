@@ -26,6 +26,7 @@ Std6730202041IPFinal2026/
 │   ├── app.json                # Expo configuration
 │   ├── config.js               # API URL configuration
 │   └── package.json            # Frontend dependencies & scripts
+├── start-all.bat               # 1-Click Master Launcher (Starts Backend + Frontend + Opens Browser)
 ├── run-backend.bat             # 1-Click launcher for Backend
 ├── run-frontend.bat            # 1-Click launcher for Frontend (Expo Web)
 ├── run-test.bat                # 1-Click launcher for Automated API Tests
