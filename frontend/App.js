@@ -11,79 +11,145 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
-  Dimensions,
+  Modal,
 } from 'react-native';
 import { API_BASE_URL } from './config';
 
 // =========================================================================
-// ENTERPRISE CONSTANTS & PALETTES
+// AWARD-WINNING DESIGNER THEME PRESETS
 // =========================================================================
 const THEMES = {
-  indigo: {
+  midnight: {
+    id: 'midnight',
+    name: 'Midnight Cyber',
+    icon: '🌙',
+    bg: '#090D16',
+    cardBg: '#131B2C',
+    innerCardBg: '#0A0F1D',
+    border: '#202D45',
+    borderHighlight: '#6366F1',
+    textMain: '#F8FAFC',
+    textSub: '#94A3B8',
+    textMuted: '#64748B',
     primary: '#6366F1',
     primaryLight: '#818CF8',
     primaryDark: '#4338CA',
-    glow: 'rgba(99, 102, 241, 0.35)',
     accent: '#38BDF8',
+    glow: 'rgba(99, 102, 241, 0.25)',
+    inputBg: 'rgba(10, 15, 29, 0.85)',
+    inputBorder: '#2D3748',
+    isDark: true,
   },
-  emerald: {
+  nordicLight: {
+    id: 'nordicLight',
+    name: 'Nordic Clean Light',
+    icon: '☀️',
+    bg: '#F1F5F9',
+    cardBg: '#FFFFFF',
+    innerCardBg: '#F8FAFC',
+    border: '#E2E8F0',
+    borderHighlight: '#4F46E5',
+    textMain: '#0F172A',
+    textSub: '#475569',
+    textMuted: '#94A3B8',
+    primary: '#4F46E5',
+    primaryLight: '#6366F1',
+    primaryDark: '#3730A3',
+    accent: '#0284C7',
+    glow: 'rgba(79, 70, 229, 0.15)',
+    inputBg: '#F8FAFC',
+    inputBorder: '#CBD5E1',
+    isDark: false,
+  },
+  oledNeon: {
+    id: 'oledNeon',
+    name: 'OLED Neon Matrix',
+    icon: '🌌',
+    bg: '#000000',
+    cardBg: '#0A0A0A',
+    innerCardBg: '#121212',
+    border: '#222222',
+    borderHighlight: '#EC4899',
+    textMain: '#FFFFFF',
+    textSub: '#A1A1AA',
+    textMuted: '#71717A',
+    primary: '#EC4899',
+    primaryLight: '#F472B6',
+    primaryDark: '#BE185D',
+    accent: '#A855F7',
+    glow: 'rgba(236, 72, 153, 0.3)',
+    inputBg: '#121212',
+    inputBorder: '#27272A',
+    isDark: true,
+  },
+  emeraldLuxe: {
+    id: 'emeraldLuxe',
+    name: 'Emerald Botanical',
+    icon: '🌿',
+    bg: '#04130E',
+    cardBg: '#0B221A',
+    innerCardBg: '#071812',
+    border: '#15382B',
+    borderHighlight: '#10B981',
+    textMain: '#F0FDF4',
+    textSub: '#86EFAC',
+    textMuted: '#4ADE80',
     primary: '#10B981',
     primaryLight: '#34D399',
-    primaryDark: '#059669',
-    glow: 'rgba(16, 185, 129, 0.35)',
-    accent: '#FBBF24',
-  },
-  cyan: {
-    primary: '#06B6D4',
-    primaryLight: '#22D3EE',
-    primaryDark: '#0891B2',
-    glow: 'rgba(6, 182, 212, 0.35)',
-    accent: '#A855F7',
-  },
-  rose: {
-    primary: '#F43F5E',
-    primaryLight: '#FB7185',
-    primaryDark: '#E11D48',
-    glow: 'rgba(244, 63, 94, 0.35)',
+    primaryDark: '#047857',
     accent: '#F59E0B',
+    glow: 'rgba(16, 185, 129, 0.25)',
+    inputBg: '#071812',
+    inputBorder: '#1A4D3B',
+    isDark: true,
+  },
+  sunsetLuxe: {
+    id: 'sunsetLuxe',
+    name: 'Sunset Velvet',
+    icon: '🌅',
+    bg: '#140915',
+    cardBg: '#221025',
+    innerCardBg: '#180B1A',
+    border: '#3D1C42',
+    borderHighlight: '#F97316',
+    textMain: '#FFF1F2',
+    textSub: '#FDA4AF',
+    textMuted: '#FB7185',
+    primary: '#F97316',
+    primaryLight: '#FB923C',
+    primaryDark: '#C2410C',
+    accent: '#F43F5E',
+    glow: 'rgba(249, 115, 22, 0.25)',
+    inputBg: '#180B1A',
+    inputBorder: '#4C2452',
+    isDark: true,
   },
 };
 
-const AVATAR_GRADIENTS = [
-  ['#6366F1', '#4F46E5'],
-  ['#8B5CF6', '#7C3AED'],
-  ['#EC4899', '#DB2777'],
-  ['#06B6D4', '#0891B2'],
-  ['#10B981', '#059669'],
-  ['#F59E0B', '#D97706'],
-  ['#3B82F6', '#2563EB'],
-  ['#14B8A6', '#0D9488'],
-];
-
-const POSITION_SUGGESTIONS = [
-  'Software Engineer',
-  'Senior Developer',
-  'Regional Manager',
-  'Office Administrator',
-  'Sales Specialist',
-  'Assistant to Regional Manager',
-  'Accountant',
-  'Senior Sales Executive',
-  'Product Designer',
-  'DevOps Architect',
-  'Data Scientist',
-  'HR Specialist',
+const POSITION_RECOMMENDATIONS = [
+  { role: 'Software Engineer', dept: 'Engineering', avgSalary: 45000 },
+  { role: 'Senior Developer', dept: 'Engineering', avgSalary: 75000 },
+  { role: 'Regional Manager', dept: 'Management', avgSalary: 95000 },
+  { role: 'Office Administrator', dept: 'Operations', avgSalary: 22000 },
+  { role: 'Sales Specialist', dept: 'Sales', avgSalary: 48000 },
+  { role: 'Accountant', dept: 'Finance', avgSalary: 25000 },
+  { role: 'DevOps Architect', dept: 'Cloud Infra', avgSalary: 85000 },
+  { role: 'Product Designer', dept: 'Design UX', avgSalary: 52000 },
 ];
 
 export default function App() {
-  // Navigation & Authentication States
+  // Theme State
+  const [currentThemeKey, setCurrentThemeKey] = useState('midnight');
+  const t = THEMES[currentThemeKey];
+
+  // Authentication States
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authToken, setAuthToken] = useState('');
   const [usernameInput, setUsernameInput] = useState('admin');
   const [passwordInput, setPasswordInput] = useState('password123');
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // Active Main Dashboard Tab ('overview' | 'directory' | 'analytics' | 'onboard' | 'audit')
+  // Active Navigation Tab ('overview' | 'directory' | 'analytics' | 'onboard' | 'audit')
   const [activeTab, setActiveTab] = useState('overview');
 
   // Employee CRUD States
@@ -97,35 +163,30 @@ export default function App() {
   const [formError, setFormError] = useState('');
   const [addingEmployee, setAddingEmployee] = useState(false);
 
-  // Search, Filter & Sort States
+  // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [sortBy, setSortBy] = useState('id-asc'); // 'id-asc' | 'salary-desc' | 'salary-asc' | 'name-asc'
-  const [viewMode, setViewMode] = useState('card'); // 'card' | 'table'
+  const [sortBy, setSortBy] = useState('id-asc');
 
-  // Salary Analytics (K-Means) States
+  // K-Means Salary Analytics (Phase 2)
   const [clusteringLoading, setClusteringLoading] = useState(false);
   const [clustersData, setClustersData] = useState(null);
-  const [lastAnalyzedAt, setLastAnalyzedAt] = useState(null);
+  const [lastAnalyzedTime, setLastAnalyzedTime] = useState(null);
 
-  // Modal & Inspector States
+  // Employee Detail Modal
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Toast Notification System
+  // Toast Notification
   const [toastMessage, setToastMessage] = useState(null);
-  const [toastType, setToastType] = useState('info'); // 'success' | 'error' | 'info'
+  const [toastType, setToastType] = useState('info');
 
-  // System Theme
-  const [currentThemeKey, setCurrentThemeKey] = useState('indigo');
-  const activeTheme = THEMES[currentThemeKey];
-
-  // Audit Logs (History of user actions)
+  // Audit Logs
   const [auditLogs, setAuditLogs] = useState([
     {
       id: 'log-1',
-      action: 'SYSTEM_BOOT',
-      detail: 'HR Manager & Analytics System initialized successfully',
+      action: 'SYSTEM_READY',
+      detail: 'HR Intelligence Suite booted successfully',
       timestamp: new Date().toLocaleTimeString(),
       type: 'system',
     },
@@ -140,7 +201,7 @@ export default function App() {
         timestamp: new Date().toLocaleTimeString(),
         type,
       },
-      ...prev.slice(0, 49),
+      ...prev.slice(0, 39),
     ]);
   };
 
@@ -149,10 +210,9 @@ export default function App() {
     setToastType(type);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3800);
+    }, 3600);
   };
 
-  // Cross-Platform Notification Helper
   const showNotification = (title, message) => {
     if (Platform.OS === 'web') {
       window.alert(`${title}: ${message}`);
@@ -162,7 +222,7 @@ export default function App() {
   };
 
   // ---------------------------------------------------------
-  // Authentication: Login Handler
+  // Authentication Handlers
   // ---------------------------------------------------------
   const handleLogin = async () => {
     if (!usernameInput.trim() || !passwordInput.trim()) {
@@ -188,12 +248,12 @@ export default function App() {
       if (response.status === 200 && data.success) {
         setAuthToken(data.token);
         setIsLoggedIn(true);
-        addAuditLog('USER_LOGIN', `Admin authenticated successfully via /api/login`, 'success');
-        showToast('ยินดีต้อนรับสู่ระบบ HR Analytics Suite', 'success');
+        addAuditLog('USER_LOGIN', `Admin access granted via /api/login`, 'success');
+        showToast('เข้าสู่ระบบสำเร็จ ยินดีต้อนรับสู่ระบบบริหาร HR', 'success');
         fetchEmployees();
       } else {
         showNotification('Login Failed', data.message || 'Invalid username or password');
-        addAuditLog('LOGIN_FAILED', `Failed attempt with user: ${usernameInput}`, 'error');
+        addAuditLog('LOGIN_FAILED', `Unauthorized attempt: ${usernameInput}`, 'error');
       }
     } catch (error) {
       showNotification('Network Error', `Cannot connect to server at ${API_BASE_URL}`);
@@ -203,7 +263,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    addAuditLog('USER_LOGOUT', `Admin session ended`, 'info');
+    addAuditLog('USER_LOGOUT', `Admin session terminated`, 'info');
     setIsLoggedIn(false);
     setAuthToken('');
     setEmployees([]);
@@ -212,7 +272,7 @@ export default function App() {
   };
 
   // ---------------------------------------------------------
-  // CRUD: Fetch Employees
+  // Employee CRUD Operations
   // ---------------------------------------------------------
   const fetchEmployees = async () => {
     try {
@@ -221,19 +281,16 @@ export default function App() {
       const data = await response.json();
       if (response.status === 200 && Array.isArray(data)) {
         setEmployees(data);
-        addAuditLog('DATA_REFRESH', `Fetched ${data.length} records from database`, 'info');
+        addAuditLog('FETCH_RECORDS', `Synchronized ${data.length} records with server`, 'info');
       }
     } catch (error) {
       console.error('Fetch Employees Error:', error);
-      showToast('ไม่สามารถดึงข้อมูลพนักงานได้', 'error');
+      showToast('ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
     } finally {
       setLoadingEmployees(false);
     }
   };
 
-  // ---------------------------------------------------------
-  // CRUD: Add New Employee with Client-Side Validation
-  // ---------------------------------------------------------
   const handleAddEmployee = async () => {
     setFormError('');
 
@@ -271,7 +328,7 @@ export default function App() {
         setPositionInput('');
         setSalaryInput('');
         setFormError('');
-        addAuditLog('EMPLOYEE_CREATED', `Added new employee: ${data.employee.name} (฿${numericSalary.toLocaleString()})`, 'success');
+        addAuditLog('ADD_EMPLOYEE', `Created record for ${data.employee.name} (฿${numericSalary.toLocaleString()})`, 'success');
         showToast(`บันทึกข้อมูล ${data.employee.name} สำเร็จ!`, 'success');
         fetchEmployees();
         if (clustersData) {
@@ -287,9 +344,6 @@ export default function App() {
     }
   };
 
-  // ---------------------------------------------------------
-  // CRUD: Toggle Employee Status
-  // ---------------------------------------------------------
   const handleToggleStatus = async (employeeId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/employees/${employeeId}/status`, {
@@ -302,8 +356,11 @@ export default function App() {
             String(emp.id) === String(employeeId) ? data.employee : emp
           )
         );
-        addAuditLog('STATUS_TOGGLED', `Changed ${data.employee.name} status to [${data.employee.status}]`, 'info');
+        addAuditLog('TOGGLE_STATUS', `Toggled ${data.employee.name} to [${data.employee.status}]`, 'info');
         showToast(`เปลี่ยนสถานะของ ${data.employee.name} เป็น ${data.employee.status}`, 'info');
+        if (selectedEmployee && String(selectedEmployee.id) === String(employeeId)) {
+          setSelectedEmployee(data.employee);
+        }
       } else {
         showNotification('Error', data.message || 'ไม่สามารถเปลี่ยนสถานะได้');
       }
@@ -312,9 +369,6 @@ export default function App() {
     }
   };
 
-  // ---------------------------------------------------------
-  // CRUD: Delete Employee with Confirmation Alert Dialog
-  // ---------------------------------------------------------
   const executeDeleteEmployee = async (employeeId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/employees/${employeeId}`, {
@@ -326,8 +380,9 @@ export default function App() {
         setEmployees((prevList) =>
           prevList.filter((emp) => String(emp.id) !== String(employeeId))
         );
-        addAuditLog('EMPLOYEE_DELETED', `Removed record for ${deletedName}`, 'error');
-        showToast(`ลบข้อมูล ${deletedName} ออกจากระบบเรียบร้อยแล้ว`, 'error');
+        addAuditLog('DELETE_EMPLOYEE', `Removed ${deletedName} from database`, 'error');
+        showToast(`ลบข้อมูล ${deletedName} เรียบร้อยแล้ว`, 'error');
+        setShowDetailModal(false);
         if (clustersData) {
           handleAnalyzeSalary();
         }
@@ -365,7 +420,7 @@ export default function App() {
   };
 
   // ---------------------------------------------------------
-  // Phase 2: K-Means Salary Clustering Analytics
+  // K-Means Salary Analytics (Phase 2)
   // ---------------------------------------------------------
   const handleAnalyzeSalary = async () => {
     try {
@@ -375,9 +430,9 @@ export default function App() {
 
       if (response.status === 200 && data.success) {
         setClustersData(data.clusters);
-        setLastAnalyzedAt(new Date().toLocaleTimeString());
-        addAuditLog('KMEANS_COMPUTED', `Analyzed salaries into 3 tiers with K-Means`, 'success');
-        showToast('การวิเคราะห์ K-Means Clustering สำเร็จแล้ว!', 'success');
+        setLastAnalyzedTime(new Date().toLocaleTimeString());
+        addAuditLog('KMEANS_CLUSTER', `Calculated 3 Tiers Centroids successfully`, 'success');
+        showToast('การประมวลผล K-Means Salary Clustering สำเร็จแล้ว!', 'success');
       } else {
         showNotification('Analytics Error', data.message || 'ไม่สามารถวิเคราะห์ข้อมูลเงินเดือนได้');
       }
@@ -389,26 +444,26 @@ export default function App() {
   };
 
   // ---------------------------------------------------------
-  // Computed Advanced Metrics & Insights
+  // Metrics & Calculations
   // ---------------------------------------------------------
   const totalEmployees = employees.length;
   const activeCount = employees.filter((e) => e.status === 'Active').length;
   const onLeaveCount = employees.filter((e) => e.status === 'On Leave').length;
 
-  const salaryStats = useMemo(() => {
-    if (totalEmployees === 0) return { min: 0, max: 0, avg: 0, median: 0, totalPayroll: 0 };
+  const stats = useMemo(() => {
+    if (totalEmployees === 0) return { min: 0, max: 0, avg: 0, median: 0, payroll: 0 };
     const numbers = employees.map((e) => Number(e.salary)).sort((a, b) => a - b);
-    const totalPayroll = numbers.reduce((sum, v) => sum + v, 0);
-    const avg = Math.round(totalPayroll / numbers.length);
+    const payroll = numbers.reduce((sum, v) => sum + v, 0);
+    const avg = Math.round(payroll / numbers.length);
     const min = numbers[0];
     const max = numbers[numbers.length - 1];
     const mid = Math.floor(numbers.length / 2);
     const median = numbers.length % 2 !== 0 ? numbers[mid] : Math.round((numbers[mid - 1] + numbers[mid]) / 2);
-    return { min, max, avg, median, totalPayroll };
+    return { min, max, avg, median, payroll };
   }, [employees]);
 
-  // Filtered & Sorted Employees
-  const filteredAndSortedEmployees = useMemo(() => {
+  // Filter & Sort
+  const filteredEmployees = useMemo(() => {
     let result = employees.filter((emp) => {
       const matchSearch =
         emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -437,54 +492,99 @@ export default function App() {
     return name.slice(0, 2).toUpperCase();
   };
 
+  // Mock Export CSV
+  const handleExportCSV = () => {
+    const csvContent = [
+      'ID,Name,Position,Status,Salary',
+      ...employees.map((e) => `"${e.id}","${e.name}","${e.position}","${e.status}",${e.salary}`),
+    ].join('\n');
+
+    if (Platform.OS === 'web') {
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `employees_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('ดาวน์โหลดไฟล์ CSV เรียบร้อยแล้ว!', 'success');
+    } else {
+      showToast('พร้อมส่งออกข้อมูล CSV ทั้งหมด', 'info');
+    }
+    addAuditLog('EXPORT_CSV', `Exported ${employees.length} records to CSV`, 'info');
+  };
+
   // =========================================================
-  // VIEW 1: ENTERPRISE CYBER LOGIN SCREEN
+  // VIEW 1: DESIGNER LOGIN SCREEN
   // =========================================================
   if (!isLoggedIn) {
     return (
-      <SafeAreaView style={styles.loginWrapper}>
+      <SafeAreaView style={[styles.loginContainer, { backgroundColor: t.bg }]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.loginCenterBox}
         >
-          {/* Ambient Lighting Orbs */}
-          <View style={styles.ambientLightOne} />
-          <View style={styles.ambientLightTwo} />
-          <View style={styles.ambientLightThree} />
+          {/* Subtle Ambient Designer Lights */}
+          <View style={[styles.ambientGlowTop, { backgroundColor: t.glow }]} />
+          <View style={[styles.ambientGlowBottom, { backgroundColor: t.glow }]} />
 
-          <View style={styles.loginGlassmorphismCard}>
-            {/* Top Brand Seal */}
-            <View style={styles.sealArea}>
-              <View style={[styles.glowingEmblem, { backgroundColor: activeTheme.primary }]}>
-                <Text style={styles.emblemIcon}>⚛</Text>
+          <View style={[styles.loginDesignerCard, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+            {/* Theme Quick Switcher on Login */}
+            <View style={styles.loginThemeRow}>
+              <Text style={[styles.loginThemeIntro, { color: t.textMuted }]}>STYLE THEME:</Text>
+              <View style={styles.themeCapsuleBox}>
+                {Object.keys(THEMES).map((key) => {
+                  const th = THEMES[key];
+                  const isCurrent = currentThemeKey === key;
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      style={[
+                        styles.themeIconPill,
+                        isCurrent && { backgroundColor: t.primary, borderColor: t.primaryLight },
+                      ]}
+                      onPress={() => setCurrentThemeKey(key)}
+                    >
+                      <Text style={styles.themeIconEmoji}>{th.icon}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-              <Text style={styles.superKickerText}>EXECUTIVE CLOUD PLATFORM</Text>
-              <Text style={styles.headlineLoginTitle}>HR Analytics & Payroll Intelligence</Text>
-              <Text style={styles.subLoginDescription}>
-                Final Examination: Internet Programming 2026 (Semester 2)
+            </View>
+
+            {/* Header Badge & Title */}
+            <View style={styles.loginBrandHeader}>
+              <View style={[styles.brandEmblemBox, { backgroundColor: t.primaryDark, borderColor: t.primary }]}>
+                <Text style={styles.brandEmblemIcon}>✦</Text>
+              </View>
+              <Text style={[styles.brandKicker, { color: t.primaryLight }]}>ENTERPRISE WORKFORCE</Text>
+              <Text style={[styles.brandTitle, { color: t.textMain }]}>HR Manager & Salary Analytics</Text>
+              <Text style={[styles.brandSub, { color: t.textSub }]}>
+                Final Examination: Internet Programming 2026
               </Text>
             </View>
 
-            {/* Credential Inputs */}
-            <View style={styles.loginInputFormStack}>
-              <View style={styles.styledInputGroup}>
-                <Text style={styles.fieldMicroLabel}>ADMINISTRATOR ID</Text>
+            {/* Form Fields */}
+            <View style={styles.loginFormArea}>
+              <View style={styles.inputGroupWrap}>
+                <Text style={[styles.inputMicroLabel, { color: t.textSub }]}>ADMINISTRATOR USERNAME</Text>
                 <TextInput
-                  style={styles.styledDarkInput}
-                  placeholder="Enter administrator username (admin)"
-                  placeholderTextColor="#64748B"
+                  style={[styles.inputBoxStyled, { backgroundColor: t.inputBg, borderColor: t.inputBorder, color: t.textMain }]}
+                  placeholder="Enter username (admin)"
+                  placeholderTextColor={t.textMuted}
                   value={usernameInput}
                   onChangeText={setUsernameInput}
                   autoCapitalize="none"
                 />
               </View>
 
-              <View style={styles.styledInputGroup}>
-                <Text style={styles.fieldMicroLabel}>AUTHORIZATION KEY</Text>
+              <View style={styles.inputGroupWrap}>
+                <Text style={[styles.inputMicroLabel, { color: t.textSub }]}>ADMINISTRATOR PASSWORD</Text>
                 <TextInput
-                  style={styles.styledDarkInput}
-                  placeholder="Enter security password (password123)"
-                  placeholderTextColor="#64748B"
+                  style={[styles.inputBoxStyled, { backgroundColor: t.inputBg, borderColor: t.inputBorder, color: t.textMain }]}
+                  placeholder="Enter password (password123)"
+                  placeholderTextColor={t.textMuted}
                   secureTextEntry
                   value={passwordInput}
                   onChangeText={setPasswordInput}
@@ -492,11 +592,7 @@ export default function App() {
               </View>
 
               <TouchableOpacity
-                style={[
-                  styles.cyberSubmitButton,
-                  { backgroundColor: activeTheme.primary, shadowColor: activeTheme.primary },
-                  loginLoading && styles.btnLoadingState,
-                ]}
+                style={[styles.loginSubmitButton, { backgroundColor: t.primary, shadowColor: t.primary }, loginLoading && styles.disabledOpacity]}
                 onPress={handleLogin}
                 disabled={loginLoading}
                 activeOpacity={0.88}
@@ -504,45 +600,37 @@ export default function App() {
                 {loginLoading ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.cyberSubmitButtonText}>AUTHENTICATE & ENTER PORTAL →</Text>
+                  <Text style={styles.loginSubmitButtonText}>SIGN IN TO PORTAL →</Text>
                 )}
               </TouchableOpacity>
             </View>
 
-            {/* Quick Fill Credentials Bar */}
-            <View style={styles.demoFillBanner}>
-              <View style={styles.demoPillRow}>
-                <View style={styles.demoBadge}>
-                  <Text style={styles.demoBadgeText}>DEMO CREDS</Text>
+            {/* Quick-Fill Credentials Card */}
+            <TouchableOpacity
+              style={[styles.demoCredentialsBox, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
+              onPress={() => {
+                setUsernameInput('admin');
+                setPasswordInput('password123');
+                showToast('กรอกรหัสทดสอบสำเร็จ (admin / password123)', 'info');
+              }}
+              activeOpacity={0.8}
+            >
+              <View style={styles.demoBoxTopLine}>
+                <View style={[styles.demoPillBadge, { backgroundColor: t.glow }]}>
+                  <Text style={[styles.demoPillBadgeText, { color: t.primaryLight }]}>QUICK DEMO</Text>
                 </View>
-                <Text style={styles.demoHintText}>แตะด้านล่างเพื่อกรอกรหัสผ่านทันที</Text>
+                <Text style={[styles.demoClickHint, { color: t.textMuted }]}>แตะเพื่อเติมรหัสผ่านทันที</Text>
               </View>
-
-              <TouchableOpacity
-                style={styles.demoTapCard}
-                onPress={() => {
-                  setUsernameInput('admin');
-                  setPasswordInput('password123');
-                  showToast('กรอกข้อมูลบัญชีทดสอบเรียบร้อยแล้ว', 'info');
-                }}
-              >
-                <Text style={styles.demoCredLabel}>
-                  User: <Text style={styles.demoCredValue}>admin</Text>
+              <View style={styles.demoValuesRow}>
+                <Text style={[styles.demoCredText, { color: t.textSub }]}>
+                  User: <Text style={[styles.demoCredBold, { color: t.textMain }]}>admin</Text>
                 </Text>
-                <Text style={styles.demoCredSeparator}>•</Text>
-                <Text style={styles.demoCredLabel}>
-                  Pass: <Text style={styles.demoCredValue}>password123</Text>
+                <Text style={{ color: t.textMuted }}>•</Text>
+                <Text style={[styles.demoCredText, { color: t.textSub }]}>
+                  Pass: <Text style={[styles.demoCredBold, { color: t.textMain }]}>password123</Text>
                 </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* System Status Footnote */}
-            <View style={styles.loginFooterRow}>
-              <View style={styles.greenBeacon} />
-              <Text style={styles.loginFooterStatus}>
-                Engine Status: Node.js Express & Metro Expo Core Online
-              </Text>
-            </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -550,73 +638,142 @@ export default function App() {
   }
 
   // =========================================================
-  // VIEW 2: ULTRA LUXURY ENTERPRISE HR DASHBOARD
+  // VIEW 2: DESIGNER HR DASHBOARD
   // =========================================================
   return (
-    <SafeAreaView style={styles.dashboardCanvas}>
-      {/* Toast Notification Bar */}
+    <SafeAreaView style={[styles.appContainer, { backgroundColor: t.bg }]}>
+      {/* Floating Toast Notification */}
       {toastMessage && (
         <View
           style={[
-            styles.floatingToast,
-            toastType === 'success' && styles.toastSuccess,
-            toastType === 'error' && styles.toastError,
-            toastType === 'info' && styles.toastInfo,
+            styles.toastBubble,
+            toastType === 'success' && styles.toastBubbleSuccess,
+            toastType === 'error' && styles.toastBubbleError,
+            toastType === 'info' && { backgroundColor: t.primaryDark, borderColor: t.primaryLight },
           ]}
         >
-          <Text style={styles.floatingToastText}>{toastMessage}</Text>
+          <Text style={styles.toastBubbleText}>{toastMessage}</Text>
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.mainScrollableBody}>
-        {/* =================================================== */}
-        {/* HEADER SECTION: Executive Topbar                    */}
-        {/* =================================================== */}
-        <View style={styles.executiveHeaderCard}>
-          <View style={styles.headerLeftBrand}>
-            <View style={[styles.headerLogoIcon, { backgroundColor: activeTheme.primaryDark }]}>
-              <Text style={styles.headerLogoEmoji}>⚡</Text>
-            </View>
-            <View>
-              <View style={styles.headerStatusRow}>
-                <Text style={styles.headerBrandTitle}>HR Intelligence Suite</Text>
-                <View style={styles.activePillBadge}>
-                  <View style={styles.pulseGreenOrb} />
-                  <Text style={styles.activePillText}>LIVE DB ACTIVE</Text>
+      {/* Employee Detail Inspector Modal */}
+      {selectedEmployee && (
+        <Modal
+          visible={showDetailModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowDetailModal(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalContentCard, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+              <View style={styles.modalHeaderRow}>
+                <View style={styles.modalAvatarAndName}>
+                  <View style={[styles.modalBigAvatar, { backgroundColor: t.primary }]}>
+                    <Text style={styles.modalBigAvatarLetters}>{getInitials(selectedEmployee.name)}</Text>
+                  </View>
+                  <View>
+                    <Text style={[styles.modalEmployeeName, { color: t.textMain }]}>{selectedEmployee.name}</Text>
+                    <Text style={[styles.modalEmployeeRole, { color: t.textSub }]}>💼 {selectedEmployee.position}</Text>
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowDetailModal(false)}>
+                  <Text style={[styles.modalCloseBtnText, { color: t.textMuted }]}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Detail Metrics */}
+              <View style={[styles.modalMetricsBox, { backgroundColor: t.innerCardBg, borderColor: t.border }]}>
+                <View style={styles.modalMetricCol}>
+                  <Text style={[styles.modalMetricLabel, { color: t.textMuted }]}>SYSTEM ID</Text>
+                  <Text style={[styles.modalMetricValue, { color: t.textMain }]}>#{selectedEmployee.id}</Text>
+                </View>
+                <View style={styles.modalMetricCol}>
+                  <Text style={[styles.modalMetricLabel, { color: t.textMuted }]}>MONTHLY SALARY</Text>
+                  <Text style={[styles.modalMetricValue, { color: t.accent }]}>฿{Number(selectedEmployee.salary).toLocaleString()}</Text>
+                </View>
+                <View style={styles.modalMetricCol}>
+                  <Text style={[styles.modalMetricLabel, { color: t.textMuted }]}>WORK STATUS</Text>
+                  <Text style={[styles.modalMetricValue, { color: selectedEmployee.status === 'Active' ? '#10B981' : '#F59E0B' }]}>
+                    {selectedEmployee.status}
+                  </Text>
                 </View>
               </View>
-              <Text style={styles.headerSubtitleText}>
-                Enterprise Salary Clustering & Workforce Performance Dashboard
+
+              <View style={styles.modalActionsRow}>
+                <TouchableOpacity
+                  style={[styles.modalToggleBtn, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
+                  onPress={() => handleToggleStatus(selectedEmployee.id)}
+                >
+                  <Text style={[styles.modalToggleBtnText, { color: t.textMain }]}>
+                    ⇄ Toggle Status ({selectedEmployee.status === 'Active' ? 'To On Leave' : 'To Active'})
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.modalDeleteBtn}
+                  onPress={() => confirmDeleteEmployee(selectedEmployee)}
+                >
+                  <Text style={styles.modalDeleteBtnText}>🗑 Delete Employee</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      <ScrollView contentContainerStyle={styles.scrollCanvas}>
+        {/* =================================================== */}
+        {/* TOPBAR WITH THEME SWITCHER                          */}
+        {/* =================================================== */}
+        <View style={[styles.executiveNavbar, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+          <View style={styles.brandTitleArea}>
+            <View style={[styles.navLogoEmblem, { backgroundColor: t.primaryDark, borderColor: t.primary }]}>
+              <Text style={styles.navLogoIcon}>💎</Text>
+            </View>
+            <View>
+              <View style={styles.navTitleRow}>
+                <Text style={[styles.navMainText, { color: t.textMain }]}>HR Intelligence Suite</Text>
+                <View style={[styles.liveIndicatorPill, { backgroundColor: 'rgba(16, 185, 129, 0.12)', borderColor: 'rgba(16, 185, 129, 0.3)' }]}>
+                  <View style={styles.livePulseDot} />
+                  <Text style={styles.liveIndicatorText}>LIVE SYNC ACTIVE</Text>
+                </View>
+              </View>
+              <Text style={[styles.navSubText, { color: t.textSub }]}>
+                Workforce Compensation, Salary Clustering (1D K-Means) & Personnel Registry
               </Text>
             </View>
           </View>
 
-          <View style={styles.headerRightControls}>
-            {/* Theme Picker Pills */}
-            <View style={styles.themePalettePicker}>
-              {Object.keys(THEMES).map((themeKey) => {
-                const isSelected = currentThemeKey === themeKey;
-                const tColor = THEMES[themeKey].primary;
+          {/* Theme Switcher Bar */}
+          <View style={styles.navRightCluster}>
+            <View style={[styles.themeSelectorBar, { backgroundColor: t.innerCardBg, borderColor: t.border }]}>
+              <Text style={[styles.themeLabelNotice, { color: t.textMuted }]}>THEME:</Text>
+              {Object.keys(THEMES).map((key) => {
+                const item = THEMES[key];
+                const isSelected = currentThemeKey === key;
                 return (
                   <TouchableOpacity
-                    key={themeKey}
+                    key={key}
                     style={[
-                      styles.colorDotButton,
-                      { backgroundColor: tColor },
-                      isSelected && styles.colorDotSelected,
+                      styles.themeTabPill,
+                      isSelected && { backgroundColor: t.primary, borderColor: t.primaryLight },
                     ]}
-                    onPress={() => setCurrentThemeKey(themeKey)}
-                  />
+                    onPress={() => {
+                      setCurrentThemeKey(key);
+                      showToast(`เปลี่ยนธีมเป็น "${item.name}" เรียบร้อยแล้ว`, 'info');
+                    }}
+                  >
+                    <Text style={styles.themeTabIcon}>{item.icon}</Text>
+                    <Text style={[styles.themeTabLabel, isSelected ? { color: '#FFFFFF', fontWeight: '800' } : { color: t.textSub }]}>
+                      {item.name.split(' ')[0]}
+                    </Text>
+                  </TouchableOpacity>
                 );
               })}
             </View>
 
-            <TouchableOpacity
-              style={styles.headerSignOutBtn}
-              onPress={handleLogout}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.headerSignOutBtnText}>Sign Out ⎋</Text>
+            <TouchableOpacity style={[styles.signOutBtnStyled, { borderColor: t.border }]} onPress={handleLogout} activeOpacity={0.8}>
+              <Text style={[styles.signOutBtnText, { color: t.textMain }]}>Sign Out ⎋</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -624,40 +781,31 @@ export default function App() {
         {/* =================================================== */}
         {/* NAVIGATION TABS BAR                                 */}
         {/* =================================================== */}
-        <View style={styles.tabsStickyNav}>
+        <View style={styles.tabNavRow}>
           {[
-            { key: 'overview', label: '📊 Overview & KPIs', badge: totalEmployees },
-            { key: 'analytics', label: '🧠 Salary K-Means Lab', badge: 'k=3' },
-            { key: 'directory', label: '👥 Employee Directory', badge: filteredAndSortedEmployees.length },
-            { key: 'onboard', label: '➕ Onboard Staff', badge: 'New' },
-            { key: 'audit', label: '📜 System Audit Log', badge: auditLogs.length },
+            { key: 'overview', label: '📊 Executive Overview', count: totalEmployees },
+            { key: 'analytics', label: '🧠 Salary K-Means Lab', count: 'Phase 2' },
+            { key: 'directory', label: '👥 Employee Directory', count: filteredEmployees.length },
+            { key: 'onboard', label: '➕ Onboard Staff', count: 'Phase 1' },
+            { key: 'audit', label: '📜 Activity Audit Log', count: auditLogs.length },
           ].map((tab) => {
             const isSelected = activeTab === tab.key;
             return (
               <TouchableOpacity
                 key={tab.key}
                 style={[
-                  styles.tabNavButton,
-                  isSelected && [styles.tabNavButtonActive, { borderColor: activeTheme.primary }],
+                  styles.tabNavPill,
+                  { backgroundColor: t.cardBg, borderColor: t.border },
+                  isSelected && { backgroundColor: t.innerCardBg, borderColor: t.primary, borderWidth: 2 },
                 ]}
                 onPress={() => setActiveTab(tab.key)}
                 activeOpacity={0.8}
               >
-                <Text
-                  style={[
-                    styles.tabNavButtonText,
-                    isSelected && [styles.tabNavButtonTextActive, { color: activeTheme.primaryLight }],
-                  ]}
-                >
+                <Text style={[styles.tabNavLabel, { color: isSelected ? t.primaryLight : t.textSub }, isSelected && { fontWeight: '900' }]}>
                   {tab.label}
                 </Text>
-                <View
-                  style={[
-                    styles.tabNavBadge,
-                    isSelected && { backgroundColor: activeTheme.primaryDark },
-                  ]}
-                >
-                  <Text style={styles.tabNavBadgeText}>{tab.badge}</Text>
+                <View style={[styles.tabBadgeBox, { backgroundColor: isSelected ? t.primaryDark : t.innerCardBg }]}>
+                  <Text style={[styles.tabBadgeText, { color: isSelected ? '#FFFFFF' : t.textMuted }]}>{tab.count}</Text>
                 </View>
               </TouchableOpacity>
             );
@@ -665,258 +813,210 @@ export default function App() {
         </View>
 
         {/* =================================================== */}
-        {/* TAB 1: EXECUTIVE OVERVIEW & KPI DASHBOARD           */}
+        {/* TAB: OVERVIEW & ANALYTICS                           */}
         {/* =================================================== */}
         {(activeTab === 'overview' || activeTab === 'analytics') && (
-          <View style={styles.tabContentSection}>
-            {/* KPI Metric Cards 4-Column Grid */}
-            <View style={styles.kpiRowGrid}>
-              <View style={[styles.kpiMetricCard, { borderTopColor: '#6366F1' }]}>
-                <View style={styles.kpiCardTopRow}>
-                  <Text style={styles.kpiCardLabel}>TOTAL HEADCOUNT</Text>
-                  <Text style={styles.kpiCardIcon}>👥</Text>
+          <View style={styles.sectionWrap}>
+            {/* KPI Metrics 4-Column Bar */}
+            <View style={styles.kpiCardsGrid}>
+              <View style={[styles.kpiCardItem, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+                <View style={styles.kpiCardTop}>
+                  <Text style={[styles.kpiSmallTitle, { color: t.textSub }]}>TOTAL HEADCOUNT</Text>
+                  <Text style={styles.kpiIcon}>👥</Text>
                 </View>
-                <Text style={[styles.kpiMetricValue, { color: '#818CF8' }]}>
-                  {totalEmployees}
-                </Text>
-                <View style={styles.kpiProgressWrapper}>
-                  <View style={[styles.kpiProgressFill, { width: '100%', backgroundColor: '#6366F1' }]} />
+                <Text style={[styles.kpiBigNumber, { color: t.primaryLight }]}>{totalEmployees}</Text>
+                <View style={[styles.kpiTrack, { backgroundColor: t.innerCardBg }]}>
+                  <View style={[styles.kpiBar, { width: '100%', backgroundColor: t.primary }]} />
                 </View>
-                <Text style={styles.kpiSubCaption}>Total registered workforce in system</Text>
+                <Text style={[styles.kpiSubText, { color: t.textMuted }]}>Registered workforce total</Text>
               </View>
 
-              <View style={[styles.kpiMetricCard, { borderTopColor: '#10B981' }]}>
-                <View style={styles.kpiCardTopRow}>
-                  <Text style={styles.kpiCardLabel}>ACTIVE ON-DUTY</Text>
-                  <Text style={styles.kpiCardIcon}>🟢</Text>
+              <View style={[styles.kpiCardItem, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+                <View style={styles.kpiCardTop}>
+                  <Text style={[styles.kpiSmallTitle, { color: t.textSub }]}>ACTIVE ON-DUTY</Text>
+                  <Text style={styles.kpiIcon}>🟢</Text>
                 </View>
-                <Text style={[styles.kpiMetricValue, { color: '#34D399' }]}>
-                  {activeCount}
-                </Text>
-                <View style={styles.kpiProgressWrapper}>
+                <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>{activeCount}</Text>
+                <View style={[styles.kpiTrack, { backgroundColor: t.innerCardBg }]}>
                   <View
                     style={[
-                      styles.kpiProgressFill,
-                      {
-                        width: `${totalEmployees > 0 ? (activeCount / totalEmployees) * 100 : 0}%`,
-                        backgroundColor: '#10B981',
-                      },
+                      styles.kpiBar,
+                      { width: `${totalEmployees > 0 ? (activeCount / totalEmployees) * 100 : 0}%`, backgroundColor: '#10B981' },
                     ]}
                   />
                 </View>
-                <Text style={styles.kpiSubCaption}>
-                  {totalEmployees > 0 ? Math.round((activeCount / totalEmployees) * 100) : 0}% operational readiness
+                <Text style={[styles.kpiSubText, { color: t.textMuted }]}>
+                  {totalEmployees > 0 ? Math.round((activeCount / totalEmployees) * 100) : 0}% team operational
                 </Text>
               </View>
 
-              <View style={[styles.kpiMetricCard, { borderTopColor: '#F59E0B' }]}>
-                <View style={styles.kpiCardTopRow}>
-                  <Text style={styles.kpiCardLabel}>ON LEAVE / REST</Text>
-                  <Text style={styles.kpiCardIcon}>🟠</Text>
+              <View style={[styles.kpiCardItem, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+                <View style={styles.kpiCardTop}>
+                  <Text style={[styles.kpiSmallTitle, { color: t.textSub }]}>ON LEAVE / REST</Text>
+                  <Text style={styles.kpiIcon}>🟠</Text>
                 </View>
-                <Text style={[styles.kpiMetricValue, { color: '#FBBF24' }]}>
-                  {onLeaveCount}
-                </Text>
-                <View style={styles.kpiProgressWrapper}>
+                <Text style={[styles.kpiBigNumber, { color: '#F59E0B' }]}>{onLeaveCount}</Text>
+                <View style={[styles.kpiTrack, { backgroundColor: t.innerCardBg }]}>
                   <View
                     style={[
-                      styles.kpiProgressFill,
-                      {
-                        width: `${totalEmployees > 0 ? (onLeaveCount / totalEmployees) * 100 : 0}%`,
-                        backgroundColor: '#F59E0B',
-                      },
+                      styles.kpiBar,
+                      { width: `${totalEmployees > 0 ? (onLeaveCount / totalEmployees) * 100 : 0}%`, backgroundColor: '#F59E0B' },
                     ]}
                   />
                 </View>
-                <Text style={styles.kpiSubCaption}>
-                  {totalEmployees > 0 ? Math.round((onLeaveCount / totalEmployees) * 100) : 0}% scheduled absence
+                <Text style={[styles.kpiSubText, { color: t.textMuted }]}>
+                  {totalEmployees > 0 ? Math.round((onLeaveCount / totalEmployees) * 100) : 0}% planned absence
                 </Text>
               </View>
 
-              <View style={[styles.kpiMetricCard, { borderTopColor: '#06B6D4' }]}>
-                <View style={styles.kpiCardTopRow}>
-                  <Text style={styles.kpiCardLabel}>AVERAGE MONTHLY SALARY</Text>
-                  <Text style={styles.kpiCardIcon}>💰</Text>
+              <View style={[styles.kpiCardItem, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+                <View style={styles.kpiCardTop}>
+                  <Text style={[styles.kpiSmallTitle, { color: t.textSub }]}>AVG MONTHLY SALARY</Text>
+                  <Text style={styles.kpiIcon}>💰</Text>
                 </View>
-                <Text style={[styles.kpiMetricValue, { color: '#22D3EE' }]}>
-                  ฿{salaryStats.avg.toLocaleString()}
-                </Text>
-                <View style={styles.kpiProgressWrapper}>
-                  <View style={[styles.kpiProgressFill, { width: '85%', backgroundColor: '#06B6D4' }]} />
+                <Text style={[styles.kpiBigNumber, { color: t.accent }]}>฿{stats.avg.toLocaleString()}</Text>
+                <View style={[styles.kpiTrack, { backgroundColor: t.innerCardBg }]}>
+                  <View style={[styles.kpiBar, { width: '80%', backgroundColor: t.accent }]} />
                 </View>
-                <Text style={styles.kpiSubCaption}>
-                  Median: ฿{salaryStats.median.toLocaleString()} / mo
+                <Text style={[styles.kpiSubText, { color: t.textMuted }]}>
+                  Median: ฿{stats.median.toLocaleString()} / mo
                 </Text>
               </View>
             </View>
 
-            {/* Quick Payroll Overview Banner */}
-            <View style={styles.payrollSummaryStrip}>
-              <View style={styles.payrollItemBlock}>
-                <Text style={styles.payrollItemLabel}>TOTAL PAYROLL BUDGET</Text>
-                <Text style={styles.payrollItemAmount}>
-                  ฿{salaryStats.totalPayroll.toLocaleString()}
-                </Text>
+            {/* Quick Strip: Total Payroll Budget */}
+            <View style={[styles.payrollBanner, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+              <View style={styles.payrollStatCol}>
+                <Text style={[styles.payrollStatLabel, { color: t.textMuted }]}>TOTAL MONTHLY PAYROLL</Text>
+                <Text style={[styles.payrollStatVal, { color: t.textMain }]}>฿{stats.payroll.toLocaleString()}</Text>
               </View>
-              <View style={styles.payrollDivider} />
-              <View style={styles.payrollItemBlock}>
-                <Text style={styles.payrollItemLabel}>ENTRY LEVEL BENCHMARK</Text>
-                <Text style={styles.payrollItemAmount}>
-                  ฿{salaryStats.min.toLocaleString()}
-                </Text>
+              <View style={[styles.payrollLineDivider, { backgroundColor: t.border }]} />
+              <View style={styles.payrollStatCol}>
+                <Text style={[styles.payrollStatLabel, { color: t.textMuted }]}>MINIMUM ENTRY COMPENSATION</Text>
+                <Text style={[styles.payrollStatVal, { color: t.textMain }]}>฿{stats.min.toLocaleString()}</Text>
               </View>
-              <View style={styles.payrollDivider} />
-              <View style={styles.payrollItemBlock}>
-                <Text style={styles.payrollItemLabel}>EXECUTIVE PEAK COMPENSATION</Text>
-                <Text style={styles.payrollItemAmount}>
-                  ฿{salaryStats.max.toLocaleString()}
-                </Text>
+              <View style={[styles.payrollLineDivider, { backgroundColor: t.border }]} />
+              <View style={styles.payrollStatCol}>
+                <Text style={[styles.payrollStatLabel, { color: t.textMuted }]}>PEAK EXECUTIVE COMPENSATION</Text>
+                <Text style={[styles.payrollStatVal, { color: t.textMain }]}>฿{stats.max.toLocaleString()}</Text>
               </View>
             </View>
 
             {/* =================================================== */}
-            {/* Phase 2: K-Means Salary Analytics Deep Dive Card     */}
+            {/* Phase 2: K-Means Salary Analytics Showcase Card     */}
             {/* =================================================== */}
-            <View style={styles.analyticsShowcaseCard}>
-              <View style={styles.analyticsCardHeadingRow}>
+            <View style={[styles.designerSectionCard, { backgroundColor: t.cardBg, borderColor: t.border, shadowColor: t.primary }]}>
+              <View style={styles.sectionCardHeader}>
                 <View>
-                  <View style={styles.phaseIndicatorTagRow}>
-                    <View style={[styles.phaseIndicatorBadge, { backgroundColor: activeTheme.primaryDark }]}>
-                      <Text style={styles.phaseIndicatorBadgeText}>🧠 AI ALGORITHM CLUSTERING</Text>
+                  <View style={styles.headerTagRow}>
+                    <View style={[styles.algoBadge, { backgroundColor: t.primaryDark }]}>
+                      <Text style={styles.algoBadgeText}>🧠 AI-POWERED ANALYTICS</Text>
                     </View>
-                    <Text style={styles.phaseMandatoryText}>PHASE 2 MANDATORY REQUIREMENT</Text>
+                    <Text style={[styles.examReqBadge, { color: t.textMuted }]}>PHASE 2 MANDATORY</Text>
                   </View>
-                  <Text style={styles.analyticsMainHeadline}>
-                    1-Dimensional K-Means Clustering Algorithm (k=3)
+                  <Text style={[styles.sectionTitleText, { color: t.textMain }]}>
+                    Automated Salary Clustering (1D K-Means, k=3)
                   </Text>
-                  <Text style={styles.analyticsSubHeadline}>
-                    จำแนกและจัดกลุ่มโครงสร้างเงินเดือนของพนักงานในองค์กรออกเป็น 3 ระดับ (Tier 1, Tier 2, Tier 3) พร้อมคำนวณค่าเฉลี่ยกึ่งกลาง (Centroid) และจำนวนบุคลากรในแต่ละระดับ
+                  <Text style={[styles.sectionSubtitleText, { color: t.textSub }]}>
+                    วิเคราะห์ข้อมูลเงินเดือนพนักงานทั้งหมด เพื่อจัดกลุ่มโครงสร้างค่าตอบแทนออกเป็น 3 Tiers (Centroids)
                   </Text>
                 </View>
 
                 <TouchableOpacity
-                  style={[
-                    styles.primaryActionTrigger,
-                    { backgroundColor: activeTheme.primary, shadowColor: activeTheme.primary },
-                    clusteringLoading && styles.btnLoadingState,
-                  ]}
+                  style={[styles.primaryActionBtn, { backgroundColor: t.primary, shadowColor: t.primary }, clusteringLoading && styles.disabledOpacity]}
                   onPress={handleAnalyzeSalary}
                   disabled={clusteringLoading}
-                  activeOpacity={0.85}
+                  activeOpacity={0.88}
                 >
                   {clusteringLoading ? (
                     <ActivityIndicator color="#FFFFFF" style={{ marginRight: 8 }} />
                   ) : (
                     <Text style={{ marginRight: 8, fontSize: 16 }}>⚡</Text>
                   )}
-                  <Text style={styles.primaryActionTriggerText}>
-                    {clusteringLoading ? 'Computing Iterations...' : 'Analyze Salary Structure'}
+                  <Text style={styles.primaryActionBtnText}>
+                    {clusteringLoading ? 'Processing Clustering...' : 'Analyze Salary Structure'}
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Loading Indicator Spinner */}
+              {/* Loading State Spinner */}
               {clusteringLoading && (
-                <View style={styles.loadingPulseContainer}>
-                  <ActivityIndicator size="large" color={activeTheme.primary} />
-                  <Text style={styles.loadingPulseHeadline}>Running 1D K-Means iterations...</Text>
-                  <Text style={styles.loadingPulseSubline}>
-                    กำลังจัดกลุ่มจุดข้อมูลเงินเดือนและคำนวณ Centroid ใหม่จนกระทั่งลู่เข้า (Convergence)
-                  </Text>
+                <View style={styles.loadingPulseArea}>
+                  <ActivityIndicator size="large" color={t.primary} />
+                  <Text style={[styles.loadingPulseMain, { color: t.textMain }]}>Computing K-Means (k=3) Centroids on Server...</Text>
+                  <Text style={[styles.loadingPulseSub, { color: t.textMuted }]}>คำนวณการกระจายตัวของเงินเดือนจนกระทั่งได้จุดกึ่งกลางที่เสถียรที่สุด</Text>
                 </View>
               )}
 
-              {/* Cluster Summary Cards */}
+              {/* Cluster Summary Cards Grid */}
               {clustersData && !clusteringLoading && (
-                <View style={styles.clusterResultsWrapper}>
-                  <View style={styles.clusterResultsTopMeta}>
-                    <Text style={styles.resultsMainLabel}>
-                      📊 Clustering Results Breakdown (k=3 Distinct Tiers)
+                <View style={[styles.clusterResultsArea, { borderTopColor: t.border }]}>
+                  <View style={styles.clusterResultsHeaderRow}>
+                    <Text style={[styles.clusterResultsMainHeading, { color: t.textMain }]}>
+                      📊 Clustering Analysis Results (Tier 1 • Tier 2 • Tier 3)
                     </Text>
-                    {lastAnalyzedAt && (
-                      <Text style={styles.resultsTimestampText}>
-                        Calculated at: {lastAnalyzedAt}
+                    {lastAnalyzedTime && (
+                      <Text style={[styles.analyzedTimeText, { color: t.textMuted }]}>
+                        Last calculated at: {lastAnalyzedTime}
                       </Text>
                     )}
                   </View>
 
-                  <View style={styles.clusterCardsTrioRow}>
-                    {clustersData.map((cluster, index) => {
-                      const tierConfigs = [
+                  <View style={styles.clusterTrioCardsRow}>
+                    {clustersData.map((tier, idx) => {
+                      const tierThemes = [
                         {
-                          title: 'Tier 1 • Junior / Base',
-                          subtitle: 'Operational & Entry Specialist',
+                          name: 'Junior / Entry Level',
                           color: '#06B6D4',
-                          bg: '#082F49',
+                          bg: t.isDark ? '#082F49' : '#ECFEFF',
                           border: '#0284C7',
                           pillBg: 'rgba(6, 182, 212, 0.2)',
                           icon: '🌱',
                         },
                         {
-                          title: 'Tier 2 • Mid-Level Pro',
-                          subtitle: 'Experienced Specialists & Leads',
+                          name: 'Mid-Level Professionals',
                           color: '#818CF8',
-                          bg: '#1E1B4B',
+                          bg: t.isDark ? '#1E1B4B' : '#EEF2FF',
                           border: '#4F46E5',
                           pillBg: 'rgba(99, 102, 241, 0.2)',
                           icon: '🚀',
                         },
                         {
-                          title: 'Tier 3 • Executive Peak',
-                          subtitle: 'Senior Leadership & Management',
+                          name: 'Executive / Leadership',
                           color: '#FBBF24',
-                          bg: '#451A03',
+                          bg: t.isDark ? '#451A03' : '#FFFBEB',
                           border: '#D97706',
                           pillBg: 'rgba(245, 158, 11, 0.2)',
                           icon: '👑',
                         },
                       ];
 
-                      const config = tierConfigs[index % 3];
-                      const tierRatio =
-                        totalEmployees > 0
-                          ? Math.round((cluster.count / totalEmployees) * 100)
-                          : 0;
+                      const conf = tierThemes[idx % 3];
+                      const ratio = totalEmployees > 0 ? Math.round((tier.count / totalEmployees) * 100) : 0;
 
                       return (
-                        <View
-                          key={cluster.group}
-                          style={[
-                            styles.clusterTierCard,
-                            { backgroundColor: config.bg, borderColor: config.border },
-                          ]}
-                        >
-                          <View style={styles.tierCardHeader}>
-                            <View style={[styles.tierGroupPill, { backgroundColor: config.pillBg }]}>
-                              <Text style={[styles.tierGroupPillText, { color: config.color }]}>
-                                {config.icon} {cluster.group}
+                        <View key={tier.group} style={[styles.tierCardBox, { backgroundColor: conf.bg, borderColor: conf.border }]}>
+                          <View style={styles.tierCardTopRow}>
+                            <View style={[styles.tierGroupBadgePill, { backgroundColor: conf.pillBg }]}>
+                              <Text style={[styles.tierGroupBadgePillText, { color: conf.color }]}>
+                                {conf.icon} {tier.group}
                               </Text>
                             </View>
-                            <Text style={styles.tierLevelCaption}>{config.subtitle}</Text>
+                            <Text style={[styles.tierNameSmall, { color: t.textSub }]}>{conf.name}</Text>
                           </View>
 
-                          <Text style={styles.centroidHeaderLabel}>Average Base Salary (Centroid)</Text>
-                          <Text style={[styles.centroidHeroNumber, { color: config.color }]}>
-                            ฿{Number(cluster.centroid).toLocaleString()}
+                          <Text style={[styles.centroidTitleLabel, { color: t.textMuted }]}>Average Base Salary (Centroid)</Text>
+                          <Text style={[styles.centroidHeroValue, { color: conf.color }]}>
+                            ฿{Number(tier.centroid).toLocaleString()}
                           </Text>
 
-                          <View style={styles.tierDistributionFooter}>
-                            <View style={styles.distributionBarTrack}>
-                              <View
-                                style={[
-                                  styles.distributionBarFill,
-                                  { width: `${tierRatio}%`, backgroundColor: config.color },
-                                ]}
-                              />
+                          <View style={styles.tierFooterStatsBox}>
+                            <View style={styles.tierTrackBackdrop}>
+                              <View style={[styles.tierTrackBar, { width: `${ratio}%`, backgroundColor: conf.color }]} />
                             </View>
-
-                            <View style={styles.distributionMetaRow}>
-                              <Text style={styles.distributionCountText}>
-                                👥 {cluster.count} Employees
-                              </Text>
-                              <Text style={[styles.distributionRatioText, { color: config.color }]}>
-                                {tierRatio}% of workforce
-                              </Text>
+                            <View style={styles.tierHeadcountRow}>
+                              <Text style={[styles.tierHeadcountLabel, { color: t.textMain }]}>👥 {tier.count} Employees</Text>
+                              <Text style={[styles.tierPercentLabel, { color: conf.color }]}>{ratio}% of total</Text>
                             </View>
                           </View>
                         </View>
@@ -930,73 +1030,69 @@ export default function App() {
         )}
 
         {/* =================================================== */}
-        {/* TAB 2 & OVERVIEW: EMPLOYEE DIRECTORY & CRUD LIST    */}
+        {/* TAB: DIRECTORY & SEARCH                             */}
         {/* =================================================== */}
         {(activeTab === 'overview' || activeTab === 'directory') && (
-          <View style={styles.tabContentSection}>
-            <View style={styles.directoryMasterCard}>
-              <View style={styles.directoryTopBar}>
+          <View style={styles.sectionWrap}>
+            <View style={[styles.designerSectionCard, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+              <View style={styles.directoryHeaderControls}>
                 <View>
-                  <View style={styles.phaseIndicatorTagRow}>
-                    <View style={[styles.phaseIndicatorBadge, { backgroundColor: '#334155' }]}>
-                      <Text style={styles.phaseIndicatorBadgeText}>WORKFORCE DIRECTORY</Text>
+                  <View style={styles.headerTagRow}>
+                    <View style={[styles.algoBadge, { backgroundColor: t.innerCardBg }]}>
+                      <Text style={[styles.algoBadgeText, { color: t.textMain }]}>PERSONNEL DIRECTORY</Text>
                     </View>
-                    <Text style={styles.phaseMandatoryText}>PHASE 1 MANDATORY CRUD</Text>
+                    <Text style={[styles.examReqBadge, { color: t.textMuted }]}>PHASE 1 REQUIRED CRUD</Text>
                   </View>
-                  <Text style={styles.directoryMainHeading}>Employee Records Directory</Text>
-                  <Text style={styles.directorySubHeading}>
-                    รายชื่อบุคลากรทั้งหมดในระบบ ({filteredAndSortedEmployees.length} คนที่ตรงตามตัวกรอง)
+                  <Text style={[styles.sectionTitleText, { color: t.textMain }]}>Employee Records Registry</Text>
+                  <Text style={[styles.sectionSubtitleText, { color: t.textSub }]}>
+                    แสดงรายชื่อพนักงานทั้งหมด ({filteredEmployees.length} คนที่ตรงกับเงื่อนไข)
                   </Text>
                 </View>
 
-                <View style={styles.directoryControlsCluster}>
-                  <TouchableOpacity
-                    style={styles.actionRoundPill}
-                    onPress={fetchEmployees}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={styles.actionRoundPillText}>🔄 Refresh Data</Text>
+                <View style={styles.directoryUtilityButtons}>
+                  <TouchableOpacity style={[styles.utilBtn, { backgroundColor: t.innerCardBg, borderColor: t.border }]} onPress={handleExportCSV}>
+                    <Text style={[styles.utilBtnText, { color: t.accent }]}>📥 Export CSV</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={[styles.utilBtn, { backgroundColor: t.innerCardBg, borderColor: t.border }]} onPress={fetchEmployees}>
+                    <Text style={[styles.utilBtnText, { color: t.primaryLight }]}>🔄 Refresh</Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Search, Filter Tabs & Sort Controls */}
-              <View style={styles.filterControlGridBar}>
-                <View style={styles.searchTextInputBox}>
-                  <Text style={styles.searchPrefixIcon}>🔍</Text>
+              {/* Filter & Search Bar */}
+              <View style={styles.searchAndFilterGrid}>
+                <View style={[styles.searchFieldBox, { backgroundColor: t.innerCardBg, borderColor: t.border }]}>
+                  <Text style={styles.searchIconSymbol}>🔍</Text>
                   <TextInput
-                    style={styles.searchActualInput}
-                    placeholder="Search by full name or job role..."
-                    placeholderTextColor="#64748B"
+                    style={[styles.searchTextInput, { color: t.textMain }]}
+                    placeholder="Search by employee name or role..."
+                    placeholderTextColor={t.textMuted}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                   />
                   {searchQuery ? (
                     <TouchableOpacity onPress={() => setSearchQuery('')}>
-                      <Text style={styles.clearSearchIcon}>✕</Text>
+                      <Text style={[styles.searchClearSymbol, { color: t.textMuted }]}>✕</Text>
                     </TouchableOpacity>
                   ) : null}
                 </View>
 
-                {/* Status Filter Tabs */}
-                <View style={styles.statusTabSelector}>
+                {/* Status Tabs */}
+                <View style={styles.statusChipsRow}>
                   {['ALL', 'Active', 'On Leave'].map((tab) => {
                     const isTabActive = statusFilter === tab;
                     return (
                       <TouchableOpacity
                         key={tab}
                         style={[
-                          styles.statusSelectorButton,
-                          isTabActive && [styles.statusSelectorButtonActive, { backgroundColor: activeTheme.primaryDark }],
+                          styles.statusChipBtn,
+                          { backgroundColor: t.innerCardBg, borderColor: t.border },
+                          isTabActive && { backgroundColor: t.primaryDark, borderColor: t.primary },
                         ]}
                         onPress={() => setStatusFilter(tab)}
                       >
-                        <Text
-                          style={[
-                            styles.statusSelectorButtonText,
-                            isTabActive && styles.statusSelectorButtonTextActive,
-                          ]}
-                        >
+                        <Text style={[styles.statusChipBtnText, { color: isTabActive ? '#FFFFFF' : t.textSub }]}>
                           {tab === 'ALL' ? 'ทั้งหมด (All)' : tab}
                         </Text>
                       </TouchableOpacity>
@@ -1004,9 +1100,9 @@ export default function App() {
                   })}
                 </View>
 
-                {/* Sort Order Dropdown simulation */}
-                <View style={styles.sortToggleRow}>
-                  <Text style={styles.sortMiniLabel}>SORT:</Text>
+                {/* Sort Order Selector */}
+                <View style={styles.sortChipsRow}>
+                  <Text style={[styles.sortPrefixText, { color: t.textMuted }]}>SORT:</Text>
                   {[
                     { id: 'id-asc', label: 'ID' },
                     { id: 'salary-desc', label: '฿ High' },
@@ -1015,15 +1111,14 @@ export default function App() {
                   ].map((s) => (
                     <TouchableOpacity
                       key={s.id}
-                      style={[styles.sortPillBtn, sortBy === s.id && styles.sortPillBtnActive]}
+                      style={[
+                        styles.sortSmallBtn,
+                        { backgroundColor: t.innerCardBg, borderColor: t.border },
+                        sortBy === s.id && { backgroundColor: t.primary, borderColor: t.primaryLight },
+                      ]}
                       onPress={() => setSortBy(s.id)}
                     >
-                      <Text
-                        style={[
-                          styles.sortPillBtnText,
-                          sortBy === s.id && styles.sortPillBtnTextActive,
-                        ]}
-                      >
+                      <Text style={[styles.sortSmallBtnText, { color: sortBy === s.id ? '#FFFFFF' : t.textSub }]}>
                         {s.label}
                       </Text>
                     </TouchableOpacity>
@@ -1031,96 +1126,88 @@ export default function App() {
                 </View>
               </View>
 
-              {/* Employee Cards Stream */}
+              {/* Employee Cards List */}
               {loadingEmployees ? (
-                <View style={styles.loadingPulseContainer}>
-                  <ActivityIndicator size="large" color={activeTheme.primary} />
-                  <Text style={styles.loadingPulseHeadline}>Loading employees from database...</Text>
+                <View style={styles.loadingPulseArea}>
+                  <ActivityIndicator size="large" color={t.primary} />
+                  <Text style={[styles.loadingPulseMain, { color: t.textMain }]}>Loading employee records...</Text>
                 </View>
-              ) : filteredAndSortedEmployees.length === 0 ? (
-                <View style={styles.emptyResultsSlate}>
-                  <Text style={styles.emptySlateEmoji}>📑</Text>
-                  <Text style={styles.emptySlateTitle}>ไม่พบข้อมูลพนักงานที่ตรงกับเงื่อนไข</Text>
-                  <Text style={styles.emptySlateSubtitle}>
-                    ลองปรับเปลี่ยนคำค้นหา หรือกรอกข้อมูลพนักงานใหม่ผ่านเมนู Onboarding
+              ) : filteredEmployees.length === 0 ? (
+                <View style={styles.emptySlateContainer}>
+                  <Text style={styles.emptySlateIcon}>📋</Text>
+                  <Text style={[styles.emptySlateHeading, { color: t.textMain }]}>ไม่พบข้อมูลพนักงานที่ตรงกับเงื่อนไข</Text>
+                  <Text style={[styles.emptySlateBody, { color: t.textMuted }]}>
+                    ลองปรับเปลี่ยนคำค้นหา หรือกรอกข้อมูลพนักงานใหม่ผ่านเมนู Onboard Staff
                   </Text>
                 </View>
               ) : (
-                <View style={styles.employeeCardListStack}>
-                  {filteredAndSortedEmployees.map((emp, index) => {
+                <View style={styles.employeeListFlow}>
+                  {filteredEmployees.map((emp) => {
                     const isActive = emp.status === 'Active';
-                    const avatarGradient = AVATAR_GRADIENTS[index % AVATAR_GRADIENTS.length];
 
                     return (
-                      <View key={emp.id} style={styles.employeeMasterRowCard}>
-                        {/* Avatar & Name Information */}
-                        <View style={styles.employeeIdentityArea}>
-                          <View
-                            style={[
-                              styles.avatarInitialsOrb,
-                              { backgroundColor: avatarGradient[0] },
-                            ]}
-                          >
-                            <Text style={styles.avatarInitialsLetters}>
-                              {getInitials(emp.name)}
-                            </Text>
+                      <View key={emp.id} style={[styles.employeeRowCard, { backgroundColor: t.innerCardBg, borderColor: t.border }]}>
+                        {/* Left: Avatar & Info */}
+                        <TouchableOpacity
+                          style={styles.employeeInfoLeft}
+                          onPress={() => {
+                            setSelectedEmployee(emp);
+                            setShowDetailModal(true);
+                          }}
+                          activeOpacity={0.75}
+                        >
+                          <View style={[styles.employeeAvatarOrb, { backgroundColor: t.primaryDark }]}>
+                            <Text style={styles.employeeAvatarLetters}>{getInitials(emp.name)}</Text>
                           </View>
 
-                          <View style={styles.identityTextStack}>
-                            <View style={styles.nameAndBadgeFlow}>
-                              <Text style={styles.employeeNameHeading}>{emp.name}</Text>
+                          <View style={styles.employeeDetailsCol}>
+                            <View style={styles.nameStatusRow}>
+                              <Text style={[styles.employeeNameTitle, { color: t.textMain }]}>{emp.name}</Text>
                               <View
                                 style={[
-                                  styles.statusHaloPill,
-                                  isActive ? styles.statusHaloActive : styles.statusHaloLeave,
+                                  styles.statusBadgeHalo,
+                                  { backgroundColor: isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)' },
                                 ]}
                               >
-                                <View
-                                  style={[
-                                    styles.statusGlowDot,
-                                    { backgroundColor: isActive ? '#10B981' : '#F59E0B' },
-                                  ]}
-                                />
-                                <Text
-                                  style={[
-                                    styles.statusHaloText,
-                                    { color: isActive ? '#34D399' : '#FBBF24' },
-                                  ]}
-                                >
+                                <View style={[styles.statusMiniDot, { backgroundColor: isActive ? '#10B981' : '#F59E0B' }]} />
+                                <Text style={[styles.statusHaloLabel, { color: isActive ? '#10B981' : '#F59E0B' }]}>
                                   {emp.status}
                                 </Text>
                               </View>
                             </View>
 
-                            <Text style={styles.employeeRoleDesignation}>💼 {emp.position}</Text>
-                            <Text style={styles.employeeSalaryPill}>
+                            <Text style={[styles.employeeRoleText, { color: t.textSub }]}>💼 {emp.position}</Text>
+                            <Text style={[styles.employeeSalaryText, { color: t.accent }]}>
                               💰 ฿{Number(emp.salary).toLocaleString()}
-                              <Text style={styles.salaryPeriodSuffix}> / month</Text>
+                              <Text style={[styles.salaryPerMonth, { color: t.textMuted }]}> / month</Text>
                             </Text>
                           </View>
-                        </View>
+                        </TouchableOpacity>
 
-                        {/* Interactive CRUD Operations Action Buttons */}
-                        <View style={styles.employeeActionButtonsCluster}>
+                        {/* Right: Actions */}
+                        <View style={styles.employeeActionsRight}>
                           <TouchableOpacity
                             style={[
-                              styles.actionPillButton,
-                              isActive ? styles.actionPillToLeave : styles.actionPillToActive,
+                              styles.btnToggleStatus,
+                              {
+                                backgroundColor: isActive ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                                borderColor: isActive ? 'rgba(245, 158, 11, 0.35)' : 'rgba(16, 185, 129, 0.35)',
+                              },
                             ]}
                             onPress={() => handleToggleStatus(emp.id)}
                             activeOpacity={0.8}
                           >
-                            <Text style={styles.actionPillButtonText}>
-                              {isActive ? '⇄ Toggle to On Leave' : '⇄ Toggle to Active'}
+                            <Text style={[styles.btnToggleStatusText, { color: t.textMain }]}>
+                              {isActive ? '⇄ Set On Leave' : '⇄ Set Active'}
                             </Text>
                           </TouchableOpacity>
 
                           <TouchableOpacity
-                            style={styles.actionDeletePillButton}
+                            style={styles.btnDeleteAction}
                             onPress={() => confirmDeleteEmployee(emp)}
                             activeOpacity={0.8}
                           >
-                            <Text style={styles.actionDeletePillButtonText}>🗑 Delete</Text>
+                            <Text style={styles.btnDeleteActionText}>🗑 Delete</Text>
                           </TouchableOpacity>
                         </View>
                       </View>
@@ -1133,63 +1220,61 @@ export default function App() {
         )}
 
         {/* =================================================== */}
-        {/* TAB 3 & OVERVIEW: HR ONBOARDING FORM SECTION        */}
+        {/* TAB: ONBOARD STAFF FORM                             */}
         {/* =================================================== */}
         {(activeTab === 'overview' || activeTab === 'onboard') && (
-          <View style={styles.tabContentSection}>
-            <View style={styles.onboardingFormMasterCard}>
-              <View style={styles.formSectionHeadingRow}>
+          <View style={styles.sectionWrap}>
+            <View style={[styles.designerSectionCard, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+              <View style={styles.sectionCardHeader}>
                 <View>
-                  <View style={styles.phaseIndicatorTagRow}>
-                    <View style={[styles.phaseIndicatorBadge, { backgroundColor: '#065F46' }]}>
-                      <Text style={[styles.phaseIndicatorBadgeText, { color: '#6EE7B7' }]}>
-                        ✦ TALENT ONBOARDING
-                      </Text>
+                  <View style={styles.headerTagRow}>
+                    <View style={[styles.algoBadge, { backgroundColor: '#065F46' }]}>
+                      <Text style={[styles.algoBadgeText, { color: '#6EE7B7' }]}>✦ RECRUITMENT ONBOARDING</Text>
                     </View>
-                    <Text style={styles.phaseMandatoryText}>PHASE 1 MANDATORY CRUD</Text>
+                    <Text style={[styles.examReqBadge, { color: t.textMuted }]}>PHASE 1 REQUIRED</Text>
                   </View>
-                  <Text style={styles.formMainHeading}>Add New Employee Record</Text>
-                  <Text style={styles.formSubHeading}>
-                    กรอกข้อมูลบุคลากรใหม่เข้าสู่ระบบ (มีระบบ Client-side Form Validation ป้องกันข้อมูลว่าง)
+                  <Text style={[styles.sectionTitleText, { color: t.textMain }]}>Add New Employee Record</Text>
+                  <Text style={[styles.sectionSubtitleText, { color: t.textSub }]}>
+                    บันทึกข้อมูลพนักงานใหม่เข้าสู่ระบบ (พร้อมระบบตรวจสอบความถูกต้องก่อนส่งข้อมูล)
                   </Text>
                 </View>
               </View>
 
               {formError ? (
-                <View style={styles.validationErrorBanner}>
-                  <Text style={styles.validationErrorText}>⚠️ {formError}</Text>
+                <View style={styles.errorAlertBox}>
+                  <Text style={styles.errorAlertText}>⚠️ {formError}</Text>
                 </View>
               ) : null}
 
-              <View style={styles.formInputsTrioRow}>
-                <View style={styles.singleInputColumn}>
-                  <Text style={styles.formFieldLabel}>FULL NAME (ชื่อ-นามสกุล) *</Text>
+              <View style={styles.formRowInputs}>
+                <View style={styles.formInputFlexCol}>
+                  <Text style={[styles.formInputLabel, { color: t.textSub }]}>FULL NAME (ชื่อ-นามสกุล) *</Text>
                   <TextInput
-                    style={styles.darkStyledFormField}
-                    placeholder="e.g. Alex Johnson"
-                    placeholderTextColor="#64748B"
+                    style={[styles.formInputBox, { backgroundColor: t.innerCardBg, borderColor: t.border, color: t.textMain }]}
+                    placeholder="เช่น สมชาย ใจดี"
+                    placeholderTextColor={t.textMuted}
                     value={nameInput}
                     onChangeText={setNameInput}
                   />
                 </View>
 
-                <View style={styles.singleInputColumn}>
-                  <Text style={styles.formFieldLabel}>JOB POSITION / ROLE *</Text>
+                <View style={styles.formInputFlexCol}>
+                  <Text style={[styles.formInputLabel, { color: t.textSub }]}>POSITION / ROLE (ตำแหน่งงาน) *</Text>
                   <TextInput
-                    style={styles.darkStyledFormField}
-                    placeholder="e.g. Cloud Security Architect"
-                    placeholderTextColor="#64748B"
+                    style={[styles.formInputBox, { backgroundColor: t.innerCardBg, borderColor: t.border, color: t.textMain }]}
+                    placeholder="เช่น Senior Cloud Architect"
+                    placeholderTextColor={t.textMuted}
                     value={positionInput}
                     onChangeText={setPositionInput}
                   />
                 </View>
 
-                <View style={styles.singleInputColumn}>
-                  <Text style={styles.formFieldLabel}>MONTHLY SALARY (THB) *</Text>
+                <View style={styles.formInputFlexCol}>
+                  <Text style={[styles.formInputLabel, { color: t.textSub }]}>MONTHLY SALARY (เงินเดือน THB) *</Text>
                   <TextInput
-                    style={styles.darkStyledFormField}
-                    placeholder="e.g. 55000"
-                    placeholderTextColor="#64748B"
+                    style={[styles.formInputBox, { backgroundColor: t.innerCardBg, borderColor: t.border, color: t.textMain }]}
+                    placeholder="เช่น 65000"
+                    placeholderTextColor={t.textMuted}
                     keyboardType="numeric"
                     value={salaryInput}
                     onChangeText={setSalaryInput}
@@ -1197,27 +1282,28 @@ export default function App() {
                 </View>
               </View>
 
-              {/* Quick Role Fill Pills */}
-              <View style={styles.quickFillRoleStrip}>
-                <Text style={styles.quickFillIntroLabel}>ตำแหน่งยอดนิยม:</Text>
+              {/* Quick Fill Preset Roles */}
+              <View style={styles.quickPresetsBar}>
+                <Text style={[styles.quickPresetsNotice, { color: t.textMuted }]}>ตำแหน่งยอดนิยม (แตะเพื่อเติม):</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {POSITION_SUGGESTIONS.slice(0, 7).map((role) => (
+                  {POSITION_RECOMMENDATIONS.map((item) => (
                     <TouchableOpacity
-                      key={role}
-                      style={styles.roleChipPill}
-                      onPress={() => setPositionInput(role)}
+                      key={item.role}
+                      style={[styles.presetChipBtn, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
+                      onPress={() => {
+                        setPositionInput(item.role);
+                        if (!salaryInput) setSalaryInput(String(item.avgSalary));
+                        showToast(`เลือกตำแหน่ง ${item.role}`, 'info');
+                      }}
                     >
-                      <Text style={styles.roleChipPillText}>+ {role}</Text>
+                      <Text style={[styles.presetChipBtnText, { color: t.primaryLight }]}>+ {item.role}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
 
               <TouchableOpacity
-                style={[
-                  styles.submitEmployeeRecordButton,
-                  addingEmployee && styles.btnLoadingState,
-                ]}
+                style={[styles.btnSubmitEmployee, { backgroundColor: '#059669', shadowColor: '#10B981' }, addingEmployee && styles.disabledOpacity]}
                 onPress={handleAddEmployee}
                 disabled={addingEmployee}
                 activeOpacity={0.88}
@@ -1225,9 +1311,7 @@ export default function App() {
                 {addingEmployee ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text style={styles.submitEmployeeRecordButtonText}>
-                    + SAVE & COMMIT EMPLOYEE RECORD
-                  </Text>
+                  <Text style={styles.btnSubmitEmployeeText}>+ SAVE & COMMIT EMPLOYEE RECORD</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -1235,46 +1319,46 @@ export default function App() {
         )}
 
         {/* =================================================== */}
-        {/* TAB 4: SYSTEM AUDIT & ACTIVITY LOG                  */}
+        {/* TAB: AUDIT LOG                                      */}
         {/* =================================================== */}
         {activeTab === 'audit' && (
-          <View style={styles.tabContentSection}>
-            <View style={styles.auditLogMasterCard}>
-              <View style={styles.auditLogTopBar}>
+          <View style={styles.sectionWrap}>
+            <View style={[styles.designerSectionCard, { backgroundColor: t.cardBg, borderColor: t.border }]}>
+              <View style={styles.sectionCardHeader}>
                 <View>
-                  <Text style={styles.auditLogHeading}>📜 Real-time System Audit Log</Text>
-                  <Text style={styles.auditLogSubHeading}>
-                    บันทึกประวัติการเรียกใช้งาน API, การล็อกอิน, และการทำ CRUD ย้อนหลัง
+                  <Text style={[styles.sectionTitleText, { color: t.textMain }]}>📜 Real-time System Audit Log</Text>
+                  <Text style={[styles.sectionSubtitleText, { color: t.textSub }]}>
+                    บันทึกประวัติการเรียกใช้งาน API และการทำ CRUD ย้อนหลังทั้งหมด
                   </Text>
                 </View>
 
                 <TouchableOpacity
-                  style={styles.clearLogsButton}
+                  style={[styles.utilBtn, { backgroundColor: t.innerCardBg, borderColor: t.border }]}
                   onPress={() => setAuditLogs([])}
                 >
-                  <Text style={styles.clearLogsButtonText}>Clear Logs</Text>
+                  <Text style={[styles.utilBtnText, { color: t.textMuted }]}>Clear Logs</Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.auditLogTimelineStack}>
+              <View style={styles.auditLogList}>
                 {auditLogs.map((log) => {
-                  const badgeColors = {
+                  const colorMap = {
                     success: '#10B981',
                     error: '#EF4444',
-                    info: '#38BDF8',
-                    system: '#818CF8',
+                    info: t.accent,
+                    system: t.primaryLight,
                   };
-                  const color = badgeColors[log.type] || '#94A3B8';
+                  const color = colorMap[log.type] || t.textMuted;
 
                   return (
-                    <View key={log.id} style={styles.auditTimelineRow}>
+                    <View key={log.id} style={[styles.auditRowItem, { borderBottomColor: t.border }]}>
                       <View style={[styles.auditDotIndicator, { backgroundColor: color }]} />
-                      <View style={styles.auditLogContent}>
-                        <View style={styles.auditLogRowMeta}>
+                      <View style={styles.auditTextCol}>
+                        <View style={styles.auditMetaRow}>
                           <Text style={[styles.auditActionTag, { color }]}>[{log.action}]</Text>
-                          <Text style={styles.auditTimestamp}>{log.timestamp}</Text>
+                          <Text style={[styles.auditTimestampText, { color: t.textMuted }]}>{log.timestamp}</Text>
                         </View>
-                        <Text style={styles.auditDetailText}>{log.detail}</Text>
+                        <Text style={[styles.auditDetailText, { color: t.textMain }]}>{log.detail}</Text>
                       </View>
                     </View>
                   );
@@ -1285,14 +1369,14 @@ export default function App() {
         )}
 
         {/* =================================================== */}
-        {/* FOOTER BAR                                          */}
+        {/* FOOTER                                              */}
         {/* =================================================== */}
-        <View style={styles.masterFooter}>
-          <Text style={styles.footerMainNotice}>
+        <View style={[styles.footerBarContainer, { borderTopColor: t.border }]}>
+          <Text style={[styles.footerMainNotice, { color: t.textSub }]}>
             Final Exam: Internet Programming (2026) • Student ID: 6730202041
           </Text>
-          <Text style={styles.footerTechNotice}>
-            Architecture: Express.js (Port 5000) • React Native Expo Web • MySQL Database ip_std6730202041
+          <Text style={[styles.footerTechNotice, { color: t.textMuted }]}>
+            Node.js Express (Port 5000) • React Native Expo • MySQL Database ip_std6730202041
           </Text>
         </View>
       </ScrollView>
@@ -1301,23 +1385,23 @@ export default function App() {
 }
 
 // =========================================================================
-// ULTRA LUXURY ENTERPRISE STYLESHEET
+// AWARD-WINNING DESIGNER STYLESHEET
 // =========================================================================
 const styles = StyleSheet.create({
-  // Canvas
-  dashboardCanvas: {
+  appContainer: {
     flex: 1,
-    backgroundColor: '#090D16', // Deep Obsidian Space
   },
-  mainScrollableBody: {
+  scrollCanvas: {
     padding: 24,
     maxWidth: 1200,
     width: '100%',
     alignSelf: 'center',
   },
 
-  // Toast
-  floatingToast: {
+  // -------------------------------------------------------
+  // TOAST NOTIFICATION
+  // -------------------------------------------------------
+  toastBubble: {
     position: 'absolute',
     top: 20,
     alignSelf: 'center',
@@ -1330,16 +1414,124 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 16,
     elevation: 8,
+    borderWidth: 1,
   },
-  toastSuccess: { backgroundColor: '#059669', borderWidth: 1, borderColor: '#34D399' },
-  toastError: { backgroundColor: '#DC2626', borderWidth: 1, borderColor: '#F87171' },
-  toastInfo: { backgroundColor: '#4338CA', borderWidth: 1, borderColor: '#818CF8' },
-  floatingToastText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
+  toastBubbleSuccess: { backgroundColor: '#059669', borderColor: '#34D399' },
+  toastBubbleError: { backgroundColor: '#DC2626', borderColor: '#F87171' },
+  toastBubbleText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
 
-  // Login Screen
-  loginWrapper: {
+  // -------------------------------------------------------
+  // MODAL INSPECTOR
+  // -------------------------------------------------------
+  modalBackdrop: {
     flex: 1,
-    backgroundColor: '#070B12',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContentCard: {
+    width: '100%',
+    maxWidth: 500,
+    borderRadius: 24,
+    padding: 28,
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalAvatarAndName: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  modalBigAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBigAvatarLetters: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  modalEmployeeName: {
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  modalEmployeeRole: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  modalCloseBtn: {
+    padding: 6,
+  },
+  modalCloseBtnText: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  modalMetricsBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  modalMetricCol: {
+    alignItems: 'center',
+  },
+  modalMetricLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  modalMetricValue: {
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  modalActionsRow: {
+    gap: 10,
+  },
+  modalToggleBtn: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  modalToggleBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  modalDeleteBtn: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalDeleteBtnText: {
+    color: '#EF4444',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+
+  // -------------------------------------------------------
+  // LOGIN SCREEN
+  // -------------------------------------------------------
+  loginContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1349,497 +1541,443 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  ambientLightOne: {
+  ambientGlowTop: {
     position: 'absolute',
     top: -80,
     left: -40,
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: 'rgba(99, 102, 241, 0.22)',
   },
-  ambientLightTwo: {
+  ambientGlowBottom: {
     position: 'absolute',
     bottom: -80,
     right: -40,
     width: 260,
     height: 260,
     borderRadius: 130,
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
   },
-  ambientLightThree: {
-    position: 'absolute',
-    top: '40%',
-    right: '25%',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(6, 182, 212, 0.15)',
-  },
-  loginGlassmorphismCard: {
+  loginDesignerCard: {
     width: '100%',
-    backgroundColor: 'rgba(19, 27, 44, 0.92)',
     borderRadius: 24,
-    padding: 38,
+    padding: 36,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    shadowColor: '#6366F1',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 36,
     elevation: 12,
   },
-  sealArea: {
+  loginThemeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 28,
+    marginBottom: 24,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
   },
-  glowingEmblem: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  loginThemeIntro: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  themeCapsuleBox: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  themeIconPill: {
+    padding: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  themeIconEmoji: {
+    fontSize: 14,
+  },
+  loginBrandHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  brandEmblemBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
+    borderWidth: 2,
+    marginBottom: 14,
   },
-  emblemIcon: {
-    fontSize: 30,
+  brandEmblemIcon: {
+    fontSize: 26,
     color: '#FFFFFF',
   },
-  superKickerText: {
+  brandKicker: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#818CF8',
+    fontWeight: '900',
     letterSpacing: 2,
-    marginBottom: 6,
+    marginBottom: 4,
   },
-  headlineLoginTitle: {
+  brandTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#F8FAFC',
     textAlign: 'center',
   },
-  subLoginDescription: {
+  brandSub: {
     fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 6,
+    marginTop: 4,
     textAlign: 'center',
   },
-  loginInputFormStack: {
+  loginFormArea: {
     width: '100%',
   },
-  styledInputGroup: {
-    marginBottom: 18,
+  inputGroupWrap: {
+    marginBottom: 16,
   },
-  fieldMicroLabel: {
+  inputMicroLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#94A3B8',
     letterSpacing: 1,
     marginBottom: 6,
   },
-  styledDarkInput: {
-    backgroundColor: 'rgba(10, 15, 29, 0.85)',
+  inputBoxStyled: {
     borderWidth: 1.5,
-    borderColor: '#2D3748',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 14,
-    color: '#F8FAFC',
   },
-  cyberSubmitButton: {
+  loginSubmitButton: {
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 8,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.45,
     shadowRadius: 16,
   },
-  cyberSubmitButtonText: {
+  loginSubmitButtonText: {
     color: '#FFFFFF',
     fontWeight: '900',
     fontSize: 13,
     letterSpacing: 1,
   },
-  demoFillBanner: {
-    marginTop: 22,
-    backgroundColor: 'rgba(10, 15, 29, 0.75)',
+  demoCredentialsBox: {
+    marginTop: 20,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#2D3748',
   },
-  demoPillRow: {
+  demoBoxTopLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  demoBadge: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+  demoPillBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
-  demoBadgeText: {
+  demoPillBadgeText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#38BDF8',
     letterSpacing: 0.5,
   },
-  demoHintText: {
+  demoClickHint: {
     fontSize: 11,
-    color: '#64748B',
   },
-  demoTapCard: {
+  demoValuesRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
     gap: 8,
   },
-  demoCredLabel: {
+  demoCredText: {
     fontSize: 12,
-    color: '#94A3B8',
   },
-  demoCredValue: {
+  demoCredBold: {
     fontWeight: '800',
-    color: '#F8FAFC',
-  },
-  demoCredSeparator: {
-    color: '#475569',
-  },
-  loginFooterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 22,
-  },
-  greenBeacon: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#10B981',
-  },
-  loginFooterStatus: {
-    fontSize: 11,
-    color: '#64748B',
   },
 
   // -------------------------------------------------------
-  // EXECUTIVE TOPBAR
+  // NAVBAR
   // -------------------------------------------------------
-  executiveHeaderCard: {
+  executiveNavbar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#131B2C',
     borderRadius: 22,
-    paddingHorizontal: 24,
-    paddingVertical: 18,
+    paddingHorizontal: 22,
+    paddingVertical: 16,
     marginBottom: 18,
     borderWidth: 1.5,
-    borderColor: '#202D45',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 18,
-    elevation: 4,
     flexWrap: 'wrap',
     gap: 14,
   },
-  headerLeftBrand: {
+  brandTitleArea: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
   },
-  headerLogoIcon: {
-    width: 48,
-    height: 48,
+  navLogoEmblem: {
+    width: 46,
+    height: 46,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#6366F1',
   },
-  headerLogoEmoji: {
-    fontSize: 22,
+  navLogoIcon: {
+    fontSize: 20,
   },
-  headerStatusRow: {
+  navTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  headerBrandTitle: {
-    fontSize: 20,
+  navMainText: {
+    fontSize: 19,
     fontWeight: '900',
-    color: '#F8FAFC',
   },
-  activePillBadge: {
+  liveIndicatorPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.35)',
   },
-  pulseGreenOrb: {
+  livePulseDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: '#10B981',
   },
-  activePillText: {
-    fontSize: 10,
-    fontWeight: '800',
+  liveIndicatorText: {
+    fontSize: 9,
+    fontWeight: '900',
     color: '#10B981',
     letterSpacing: 0.5,
   },
-  headerSubtitleText: {
+  navSubText: {
     fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 3,
+    marginTop: 2,
   },
-  headerRightControls: {
+  navRightCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
-  themePalettePicker: {
+  themeSelectorBar: {
     flexDirection: 'row',
-    gap: 8,
-    backgroundColor: '#0A0F1D',
+    alignItems: 'center',
+    gap: 6,
     padding: 6,
-    borderRadius: 20,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#202D45',
   },
-  colorDotButton: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+  themeLabelNotice: {
+    fontSize: 10,
+    fontWeight: '800',
+    paddingHorizontal: 4,
   },
-  colorDotSelected: {
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    transform: [{ scale: 1.15 }],
-  },
-  headerSignOutBtn: {
-    backgroundColor: '#202D45',
-    paddingVertical: 9,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+  themeTabPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'transparent',
   },
-  headerSignOutBtnText: {
+  themeTabIcon: {
+    fontSize: 12,
+  },
+  themeTabLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  signOutBtnStyled: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  signOutBtnText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#F8FAFC',
   },
 
   // -------------------------------------------------------
-  // NAVIGATION TABS
+  // TABS ROW
   // -------------------------------------------------------
-  tabsStickyNav: {
+  tabNavRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 22,
+    marginBottom: 20,
   },
-  tabNavButton: {
+  tabNavPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#131B2C',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#202D45',
   },
-  tabNavButtonActive: {
-    backgroundColor: '#1A2338',
-  },
-  tabNavButtonText: {
+  tabNavLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#94A3B8',
   },
-  tabNavButtonTextActive: {
-    fontWeight: '800',
-  },
-  tabNavBadge: {
-    backgroundColor: '#202D45',
-    paddingHorizontal: 8,
+  tabBadgeBox: {
+    paddingHorizontal: 7,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: 8,
   },
-  tabNavBadgeText: {
-    fontSize: 11,
+  tabBadgeText: {
+    fontSize: 10,
     fontWeight: '800',
-    color: '#F8FAFC',
   },
 
   // -------------------------------------------------------
-  // KPI 4-COLUMN ROW
+  // KPI 4-COLUMN BAR
   // -------------------------------------------------------
-  tabContentSection: {
+  sectionWrap: {
     marginBottom: 10,
   },
-  kpiRowGrid: {
+  kpiCardsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 14,
     marginBottom: 16,
   },
-  kpiMetricCard: {
+  kpiCardItem: {
     flex: 1,
     minWidth: 220,
-    backgroundColor: '#131B2C',
     borderRadius: 18,
-    padding: 20,
+    padding: 18,
     borderWidth: 1.5,
-    borderColor: '#202D45',
-    borderTopWidth: 4,
   },
-  kpiCardTopRow: {
+  kpiCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  kpiCardLabel: {
+  kpiSmallTitle: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#94A3B8',
     letterSpacing: 1,
   },
-  kpiCardIcon: {
+  kpiIcon: {
     fontSize: 16,
   },
-  kpiMetricValue: {
-    fontSize: 32,
+  kpiBigNumber: {
+    fontSize: 30,
     fontWeight: '900',
-    marginVertical: 6,
+    marginVertical: 4,
   },
-  kpiProgressWrapper: {
+  kpiTrack: {
     height: 6,
-    backgroundColor: '#0A0F1D',
     borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  kpiProgressFill: {
+  kpiBar: {
     height: '100%',
     borderRadius: 3,
   },
-  kpiSubCaption: {
+  kpiSubText: {
     fontSize: 11,
-    color: '#64748B',
   },
-
-  // Payroll Strip
-  payrollSummaryStrip: {
+  payrollBanner: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    backgroundColor: '#131B2C',
     borderRadius: 16,
     padding: 18,
     marginBottom: 24,
     borderWidth: 1.5,
-    borderColor: '#202D45',
     justifyContent: 'space-around',
     alignItems: 'center',
     gap: 12,
   },
-  payrollItemBlock: {
+  payrollStatCol: {
     alignItems: 'center',
   },
-  payrollItemLabel: {
-    fontSize: 11,
+  payrollStatLabel: {
+    fontSize: 10,
     fontWeight: '800',
-    color: '#94A3B8',
     letterSpacing: 0.5,
     marginBottom: 4,
   },
-  payrollItemAmount: {
-    fontSize: 20,
+  payrollStatVal: {
+    fontSize: 19,
     fontWeight: '900',
-    color: '#F8FAFC',
   },
-  payrollDivider: {
+  payrollLineDivider: {
     width: 1,
-    height: 36,
-    backgroundColor: '#202D45',
+    height: 32,
   },
 
   // -------------------------------------------------------
-  // K-MEANS SALARY SHOWCASE CARD
+  // DESIGNER SECTION CARDS
   // -------------------------------------------------------
-  analyticsShowcaseCard: {
-    backgroundColor: '#131B2C',
+  designerSectionCard: {
     borderRadius: 22,
     padding: 26,
-    marginBottom: 26,
+    marginBottom: 24,
     borderWidth: 1.5,
-    borderColor: '#2D3748',
-    shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.2,
     shadowRadius: 24,
   },
-  analyticsCardHeadingRow: {
+  sectionCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     flexWrap: 'wrap',
-    gap: 16,
+    gap: 14,
   },
-  phaseIndicatorTagRow: {
+  headerTagRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  phaseIndicatorBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+  algoBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 14,
   },
-  phaseIndicatorBadgeText: {
+  algoBadgeText: {
     fontSize: 10,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-  phaseMandatoryText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#64748B',
     letterSpacing: 0.5,
   },
-  analyticsMainHeadline: {
+  examReqBadge: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  sectionTitleText: {
     fontSize: 20,
     fontWeight: '900',
-    color: '#F8FAFC',
   },
-  analyticsSubHeadline: {
+  sectionSubtitleText: {
     fontSize: 13,
-    color: '#94A3B8',
     marginTop: 4,
-    maxWidth: 720,
-    lineHeight: 18,
+    maxWidth: 680,
   },
-  primaryActionTrigger: {
-    paddingHorizontal: 22,
+  primaryActionBtn: {
+    paddingHorizontal: 20,
     paddingVertical: 14,
     borderRadius: 14,
     flexDirection: 'row',
@@ -1848,432 +1986,330 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 16,
   },
-  primaryActionTriggerText: {
+  primaryActionBtnText: {
     color: '#FFFFFF',
     fontWeight: '900',
     fontSize: 13,
     letterSpacing: 0.5,
   },
-  loadingPulseContainer: {
+  loadingPulseArea: {
     alignItems: 'center',
-    paddingVertical: 36,
+    paddingVertical: 32,
   },
-  loadingPulseHeadline: {
-    marginTop: 14,
+  loadingPulseMain: {
+    marginTop: 12,
     fontSize: 15,
     fontWeight: '800',
-    color: '#F8FAFC',
   },
-  loadingPulseSubline: {
+  loadingPulseSub: {
     marginTop: 4,
     fontSize: 12,
-    color: '#64748B',
   },
-  clusterResultsWrapper: {
-    marginTop: 24,
-    paddingTop: 22,
+
+  // -------------------------------------------------------
+  // CLUSTERING RESULTS
+  // -------------------------------------------------------
+  clusterResultsArea: {
+    marginTop: 22,
+    paddingTop: 20,
     borderTopWidth: 1.5,
-    borderTopColor: '#202D45',
   },
-  clusterResultsTopMeta: {
+  clusterResultsHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
     flexWrap: 'wrap',
   },
-  resultsMainLabel: {
+  clusterResultsMainHeading: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#F8FAFC',
   },
-  resultsTimestampText: {
+  analyzedTimeText: {
     fontSize: 12,
-    color: '#64748B',
   },
-  clusterCardsTrioRow: {
+  clusterTrioCardsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 16,
   },
-  clusterTierCard: {
+  tierCardBox: {
     flex: 1,
-    minWidth: 280,
+    minWidth: 260,
     borderRadius: 18,
     borderWidth: 1.5,
-    padding: 20,
+    padding: 18,
   },
-  tierCardHeader: {
+  tierCardTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
-  tierGroupPill: {
+  tierGroupBadgePill: {
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: 8,
   },
-  tierGroupPillText: {
+  tierGroupBadgePillText: {
     fontWeight: '900',
     fontSize: 12,
   },
-  tierLevelCaption: {
+  tierNameSmall: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#94A3B8',
   },
-  centroidHeaderLabel: {
+  centroidTitleLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#94A3B8',
     letterSpacing: 0.5,
   },
-  centroidHeroNumber: {
+  centroidHeroValue: {
     fontSize: 28,
     fontWeight: '900',
     marginVertical: 4,
   },
-  tierDistributionFooter: {
-    marginTop: 14,
-    paddingTop: 12,
+  tierFooterStatsBox: {
+    marginTop: 12,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
-  distributionBarTrack: {
-    height: 7,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-    borderRadius: 4,
+  tierTrackBackdrop: {
+    height: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 8,
   },
-  distributionBarFill: {
+  tierTrackBar: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
   },
-  distributionMetaRow: {
+  tierHeadcountRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  distributionCountText: {
+  tierHeadcountLabel: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#F8FAFC',
   },
-  distributionRatioText: {
+  tierPercentLabel: {
     fontSize: 12,
     fontWeight: '900',
   },
 
   // -------------------------------------------------------
-  // DIRECTORY & CRUD SECTION
+  // DIRECTORY & SEARCH
   // -------------------------------------------------------
-  directoryMasterCard: {
-    backgroundColor: '#131B2C',
-    borderRadius: 22,
-    padding: 26,
-    marginBottom: 26,
-    borderWidth: 1.5,
-    borderColor: '#202D45',
-  },
-  directoryTopBar: {
+  directoryHeaderControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 18,
     flexWrap: 'wrap',
-    gap: 14,
+    gap: 12,
   },
-  directoryMainHeading: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#F8FAFC',
-  },
-  directorySubHeading: {
-    fontSize: 13,
-    color: '#94A3B8',
-    marginTop: 4,
-  },
-  directoryControlsCluster: {
+  directoryUtilityButtons: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
-  actionRoundPill: {
-    backgroundColor: '#202D45',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
+  utilBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#334155',
   },
-  actionRoundPillText: {
-    color: '#93C5FD',
+  utilBtnText: {
     fontSize: 12,
     fontWeight: '800',
   },
-  filterControlGridBar: {
+  searchAndFilterGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
     marginBottom: 20,
     alignItems: 'center',
   },
-  searchTextInputBox: {
+  searchFieldBox: {
     flex: 1,
     minWidth: 260,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0A0F1D',
-    borderWidth: 1.5,
-    borderColor: '#202D45',
     borderRadius: 12,
+    borderWidth: 1.5,
     paddingHorizontal: 14,
   },
-  searchPrefixIcon: {
+  searchIconSymbol: {
     fontSize: 14,
     marginRight: 8,
   },
-  searchActualInput: {
+  searchTextInput: {
     flex: 1,
-    height: 44,
-    color: '#F8FAFC',
+    height: 42,
     fontSize: 13,
   },
-  clearSearchIcon: {
-    color: '#64748B',
+  searchClearSymbol: {
     fontSize: 14,
     paddingHorizontal: 6,
   },
-  statusTabSelector: {
+  statusChipsRow: {
     flexDirection: 'row',
     gap: 6,
   },
-  statusSelectorButton: {
+  statusChipBtn: {
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderRadius: 10,
-    backgroundColor: '#0A0F1D',
     borderWidth: 1.5,
-    borderColor: '#202D45',
   },
-  statusSelectorButtonActive: {
-    borderColor: '#6366F1',
-  },
-  statusSelectorButtonText: {
+  statusChipBtnText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#94A3B8',
   },
-  statusSelectorButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  sortToggleRow: {
+  sortChipsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  sortMiniLabel: {
+  sortPrefixText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#64748B',
   },
-  sortPillBtn: {
+  sortSmallBtn: {
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: '#0A0F1D',
     borderWidth: 1,
-    borderColor: '#202D45',
   },
-  sortPillBtnActive: {
-    backgroundColor: '#334155',
-    borderColor: '#64748B',
-  },
-  sortPillBtnText: {
+  sortSmallBtnText: {
     fontSize: 11,
-    color: '#94A3B8',
-    fontWeight: '700',
-  },
-  sortPillBtnTextActive: {
-    color: '#F8FAFC',
     fontWeight: '800',
   },
-  employeeCardListStack: {
+  employeeListFlow: {
     gap: 12,
   },
-  employeeMasterRowCard: {
+  employeeRowCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0A0F1D',
     borderRadius: 16,
-    padding: 18,
+    padding: 16,
     borderWidth: 1.5,
-    borderColor: '#202D45',
     flexWrap: 'wrap',
     gap: 14,
   },
-  employeeIdentityArea: {
+  employeeInfoLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     flex: 1,
-    minWidth: 280,
+    minWidth: 260,
   },
-  avatarInitialsOrb: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  employeeAvatarOrb: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
   },
-  avatarInitialsLetters: {
-    fontSize: 17,
+  employeeAvatarLetters: {
+    fontSize: 16,
     fontWeight: '900',
     color: '#FFFFFF',
   },
-  identityTextStack: {
+  employeeDetailsCol: {
     flex: 1,
   },
-  nameAndBadgeFlow: {
+  nameStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginBottom: 4,
   },
-  employeeNameHeading: {
+  employeeNameTitle: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#F8FAFC',
   },
-  statusHaloPill: {
+  statusBadgeHalo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: 12,
   },
-  statusHaloActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.35)',
-  },
-  statusHaloLeave: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.35)',
-  },
-  statusGlowDot: {
+  statusMiniDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
   },
-  statusHaloText: {
+  statusHaloLabel: {
     fontSize: 11,
     fontWeight: '900',
   },
-  employeeRoleDesignation: {
+  employeeRoleText: {
     fontSize: 13,
-    color: '#94A3B8',
-    marginBottom: 4,
+    marginBottom: 3,
   },
-  employeeSalaryPill: {
+  employeeSalaryText: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#38BDF8',
   },
-  salaryPeriodSuffix: {
+  salaryPerMonth: {
     fontSize: 11,
-    color: '#64748B',
     fontWeight: '400',
   },
-  employeeActionButtonsCluster: {
+  employeeActionsRight: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     alignItems: 'center',
   },
-  actionPillButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
+  btnToggleStatus: {
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 8,
     borderWidth: 1,
   },
-  actionPillToLeave: {
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    borderColor: 'rgba(245, 158, 11, 0.35)',
-  },
-  actionPillToActive: {
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    borderColor: 'rgba(16, 185, 129, 0.35)',
-  },
-  actionPillButtonText: {
+  btnToggleStatusText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#F8FAFC',
   },
-  actionDeletePillButton: {
+  btnDeleteAction: {
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
     borderColor: 'rgba(239, 68, 68, 0.35)',
     borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 8,
   },
-  actionDeletePillButtonText: {
+  btnDeleteActionText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#F87171',
+    color: '#EF4444',
   },
-  emptyResultsSlate: {
-    padding: 40,
+  emptySlateContainer: {
+    padding: 38,
     alignItems: 'center',
   },
-  emptySlateEmoji: {
-    fontSize: 42,
+  emptySlateIcon: {
+    fontSize: 40,
     marginBottom: 10,
   },
-  emptySlateTitle: {
+  emptySlateHeading: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#E2E8F0',
   },
-  emptySlateSubtitle: {
+  emptySlateBody: {
     fontSize: 12,
-    color: '#64748B',
     marginTop: 4,
   },
 
   // -------------------------------------------------------
-  // ONBOARDING FORM
+  // ONBOARD FORM
   // -------------------------------------------------------
-  onboardingFormMasterCard: {
-    backgroundColor: '#131B2C',
-    borderRadius: 22,
-    padding: 26,
-    marginBottom: 26,
-    borderWidth: 1.5,
-    borderColor: '#202D45',
-  },
-  formSectionHeadingRow: {
-    marginBottom: 18,
-  },
-  formMainHeading: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#F8FAFC',
-  },
-  formSubHeading: {
-    fontSize: 13,
-    color: '#94A3B8',
-    marginTop: 4,
-  },
-  validationErrorBanner: {
+  errorAlertBox: {
     backgroundColor: 'rgba(239, 68, 68, 0.15)',
     borderWidth: 1,
     borderColor: '#EF4444',
@@ -2281,74 +2317,64 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
   },
-  validationErrorText: {
-    color: '#FCA5A5',
+  errorAlertText: {
+    color: '#F87171',
     fontWeight: '800',
     fontSize: 13,
   },
-  formInputsTrioRow: {
+  formRowInputs: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 16,
   },
-  singleInputColumn: {
+  formInputFlexCol: {
     flex: 1,
     minWidth: 240,
   },
-  formFieldLabel: {
+  formInputLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#CBD5E1',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
-  darkStyledFormField: {
-    backgroundColor: '#0A0F1D',
+  formInputBox: {
     borderWidth: 1.5,
-    borderColor: '#202D45',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 14,
-    color: '#F8FAFC',
   },
-  quickFillRoleStrip: {
+  quickPresetsBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginTop: 14,
     marginBottom: 16,
   },
-  quickFillIntroLabel: {
+  quickPresetsNotice: {
     fontSize: 11,
-    color: '#64748B',
     fontWeight: '700',
   },
-  roleChipPill: {
-    backgroundColor: '#202D45',
+  presetChipBtn: {
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 8,
     marginRight: 6,
     borderWidth: 1,
-    borderColor: '#334155',
   },
-  roleChipPillText: {
+  presetChipBtnText: {
     fontSize: 11,
-    color: '#93C5FD',
     fontWeight: '700',
   },
-  submitEmployeeRecordButton: {
-    backgroundColor: '#059669',
+  btnSubmitEmployee: {
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
   },
-  submitEmployeeRecordButtonText: {
+  btnSubmitEmployeeText: {
     color: '#FFFFFF',
     fontWeight: '900',
     fontSize: 14,
@@ -2358,53 +2384,15 @@ const styles = StyleSheet.create({
   // -------------------------------------------------------
   // AUDIT LOG
   // -------------------------------------------------------
-  auditLogMasterCard: {
-    backgroundColor: '#131B2C',
-    borderRadius: 22,
-    padding: 26,
-    marginBottom: 26,
-    borderWidth: 1.5,
-    borderColor: '#202D45',
-  },
-  auditLogTopBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  auditLogHeading: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#F8FAFC',
-  },
-  auditLogSubHeading: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  clearLogsButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#202D45',
-    borderRadius: 8,
-  },
-  clearLogsButtonText: {
-    fontSize: 11,
-    color: '#94A3B8',
-    fontWeight: '700',
-  },
-  auditLogTimelineStack: {
+  auditLogList: {
     gap: 12,
   },
-  auditTimelineRow: {
+  auditRowItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#1A2338',
   },
   auditDotIndicator: {
     width: 8,
@@ -2412,10 +2400,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginTop: 5,
   },
-  auditLogContent: {
+  auditTextCol: {
     flex: 1,
   },
-  auditLogRowMeta: {
+  auditMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -2424,38 +2412,32 @@ const styles = StyleSheet.create({
   auditActionTag: {
     fontSize: 11,
     fontWeight: '900',
-    letterSpacing: 0.5,
   },
-  auditTimestamp: {
+  auditTimestampText: {
     fontSize: 11,
-    color: '#64748B',
   },
   auditDetailText: {
     fontSize: 13,
-    color: '#E2E8F0',
   },
 
   // -------------------------------------------------------
-  // MASTER FOOTER
+  // FOOTER
   // -------------------------------------------------------
-  masterFooter: {
+  footerBarContainer: {
     alignItems: 'center',
     paddingVertical: 24,
     borderTopWidth: 1,
-    borderTopColor: '#1A2338',
     marginTop: 10,
   },
   footerMainNotice: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#64748B',
   },
   footerTechNotice: {
     fontSize: 11,
-    color: '#475569',
     marginTop: 4,
   },
-  btnLoadingState: {
+  disabledOpacity: {
     opacity: 0.6,
   },
 });
